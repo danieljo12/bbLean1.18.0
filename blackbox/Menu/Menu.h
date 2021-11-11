@@ -19,8 +19,8 @@
 
   ========================================================================== */
 
-// This file is the common header for the files that make up
-// the menu implementation.
+  // This file is the common header for the files that make up
+  // the menu implementation.
 
 #ifndef _MENU_H_
 #define _MENU_H_
@@ -30,264 +30,263 @@
 #include "MenuMaker.h"
 #include "../DataTypes.h"
 
-struct MenuList { struct MenuList *next; class Menu *m; };
+struct MenuList { struct MenuList* next; class Menu* m; };
 
 // global vars
 extern int g_menu_count;
 extern int g_menu_item_count;
 
-typedef bool (*MENUENUMPROC)(Menu *m, void *ud);
+typedef bool (*MENUENUMPROC)(Menu* m, void* ud);
 
 class MenuItem;
 struct IconLoaderWorkItem;
 
 //=======================================
-class Menu
-{
+class Menu {
 protected:
-    int         m_refc;         // menu reference count (must come first)
+	int         m_refc;         // menu reference count (must come first)
 
-    Menu*       m_pParent;      // parent menu, if onscreen
-    Menu*       m_pChild;       // child menu, if onscreen
+	Menu* m_pParent;      // parent menu, if onscreen
+	Menu* m_pChild;       // child menu, if onscreen
 
-    MenuItem*   m_pMenuItems;   // items, first is title (always present)
-    MenuItem*   m_pParentItem;  // parentmenu's folderitem linked to this
-    MenuItem*   m_pActiveItem;  // currently hilited item
-    MenuItem*   m_pLastItem;    // tail pointer while adding items
+	MenuItem* m_pMenuItems;   // items, first is title (always present)
+	MenuItem* m_pParentItem;  // parentmenu's folderitem linked to this
+	MenuItem* m_pActiveItem;  // currently hilited item
+	MenuItem* m_pLastItem;    // tail pointer while adding items
 
-    int         m_MenuID;       // see below
-    char*       m_IDString;     // unique ID for plugin menus
+	int         m_MenuID;       // see below
+	char* m_IDString;     // unique ID for plugin menus
 
-    int         m_itemcount;    // total items
-    int         m_topindex;     // top item index
-    int         m_pagesize;     // visible items
-    int         m_firstitem_top;// in pixel
-    int         m_kbditempos;   // item hilited by the keyboard
+	int         m_itemcount;    // total items
+	int         m_topindex;     // top item index
+	int         m_pagesize;     // visible items
+	int         m_firstitem_top;// in pixel
+	int         m_kbditempos;   // item hilited by the keyboard
 
-    int         m_scrollpos;    // scroll button location (pixel from trackstart)
-    int         m_captureflg;   // when the mouse is captured, see below
+	int         m_scrollpos;    // scroll button location (pixel from trackstart)
+	int         m_captureflg;   // when the mouse is captured, see below
 
-    Menu*       m_OldChild;     // in update: remember child
-    int         m_OldPos;       // in update: remember active item
-    bool        m_saved;
+	Menu* m_OldChild;     // in update: remember child
+	int         m_OldPos;       // in update: remember active item
+	bool        m_saved;
 
-    bool        m_bOnTop;       // z-order
-    bool        m_bPinned;      // pinned
-    bool        m_bNoTitle;     // dont draw title
-    bool        m_bIconized;    // iconized to titlebar
+	bool        m_bOnTop;       // z-order
+	bool        m_bPinned;      // pinned
+	bool        m_bNoTitle;     // dont draw title
+	bool        m_bIconized;    // iconized to titlebar
 
-    bool        m_kbdpos;  // save position to blackbox.rc on changes
-    bool        m_bIsDropTarg;  // window should be registered as DT
-    bool        m_bMouseOver;   // current states:
-    bool        m_bHasFocus;
-    bool        m_dblClicked;
-    bool        m_bMoving;      // moved by the user
-    bool        m_bInDrag;      // in drag&drop operation
-    bool        m_bPopup;       // for plugin menus, false when updating
+	bool        m_kbdpos;  // save position to blackbox.rc on changes
+	bool        m_bIsDropTarg;  // window should be registered as DT
+	bool        m_bMouseOver;   // current states:
+	bool        m_bHasFocus;
+	bool        m_dblClicked;
+	bool        m_bMoving;      // moved by the user
+	bool        m_bInDrag;      // in drag&drop operation
+	bool        m_bPopup;       // for plugin menus, false when updating
 
-    unsigned char m_alpha;      // transparency
+	unsigned char m_alpha;      // transparency
 
-    int         m_sortmode;     // folder sort mode
-    int         m_sortrev;      // folder sort order
+	int         m_sortmode;     // folder sort mode
+	int         m_sortrev;      // folder sort order
 
-    int         m_xpos;         // window position and sizes
-    int         m_ypos;
-    int         m_width;
-    int         m_height;
+	int         m_xpos;         // window position and sizes
+	int         m_ypos;
+	int         m_width;
+	int         m_height;
 
-    HBITMAP     m_hBitMap;      // background bitmap, only while onscreen
-    HBITMAP     m_hBmpScroll;   // bitmap to paint scroller
-    HWND        m_hwnd;         // window handle, only while onscreen
-    HWND        m_hwndChild;    // edit control of StringItems
-    HWND        m_hwndRef;      // hwnd to send notifications to */
-    int         m_minwidth; /* BlackboxZero 12.17.2011 */
-    int         m_maxwidth;
-    int         m_maxheight;
+	HBITMAP     m_hBitMap;      // background bitmap, only while onscreen
+	HBITMAP     m_hBmpScroll;   // bitmap to paint scroller
+	HWND        m_hwnd;         // window handle, only while onscreen
+	HWND        m_hwndChild;    // edit control of StringItems
+	HWND        m_hwndRef;      // hwnd to send notifications to */
+	int         m_minwidth; /* BlackboxZero 12.17.2011 */
+	int         m_maxwidth;
+	int         m_maxheight;
 
-    RECT        m_mon;          // monitor rect where the menu is on
-    RECT        m_pos;          // initial display position setting
-    int         m_flags;        // initial display (and other) flags
+	RECT        m_mon;          // monitor rect where the menu is on
+	RECT        m_pos;          // initial display position setting
+	int         m_flags;        // initial display (and other) flags
 
-    struct pidl_node *m_pidl_list;
-    class CDropTarget *m_droptarget;
-    UINT m_notify;
+	struct pidl_node* m_pidl_list;
+	class CDropTarget* m_droptarget;
+	UINT m_notify;
 
-    // ----------------------
-    // global variables
+	// ----------------------
+	// global variables
 
-    static MenuList *g_MenuWindowList;  // all menus with a window
-    static MenuList *g_MenuStructList;  // all menus
-    static MenuList *g_MenuRefList;  // menus for deletion
-    static void g_incref();
-    static void g_decref();
+	static MenuList* g_MenuWindowList;  // all menus with a window
+	static MenuList* g_MenuStructList;  // all menus
+	static MenuList* g_MenuRefList;  // menus for deletion
+	static void g_incref();
+	static void g_decref();
 
-    // ----------------------
-    // class methods
+	// ----------------------
+	// class methods
 
-    Menu(const char *pszTitle);
-    virtual ~Menu();
-    virtual void UpdateFolder(void);
+	Menu(const char* pszTitle);
+	virtual ~Menu();
+	virtual void UpdateFolder(void);
 
-    int decref(void);
-    int incref(void);
+	int decref(void);
+	int incref(void);
 public:
-    MenuItem *AddMenuItem(MenuItem* m);
+	MenuItem* AddMenuItem(MenuItem* m);
 protected:
-    void DeleteMenuItems(void);
+	void DeleteMenuItems(void);
 
-    void LinkToParentItem(MenuItem *pItem);
+	void LinkToParentItem(MenuItem* pItem);
 
-    void Hide(void);
-    void HideNow(void);
-    void HideChild(void);
-    void UnHilite(void);
+	void Hide(void);
+	void HideNow(void);
+	void HideChild(void);
+	void UnHilite(void);
 
-    void SetPinned(bool bPinned);
-    void SetZPos(void);
-    void Validate(void);
-    void Show(int xpos, int ypos, bool fShow);
-    void Paint(void);
+	void SetPinned(bool bPinned);
+	void SetZPos(void);
+	void Validate(void);
+	void Show(int xpos, int ypos, bool fShow);
+	void Paint(void);
 
-    void MenuTimer(UINT);
-    bool Handle_Key(UINT msg, UINT wParam);
-    void Handle_Mouse(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+	void MenuTimer(UINT);
+	bool Handle_Key(UINT msg, UINT wParam);
+	void Handle_Mouse(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
-    void register_droptarget(bool set);
+	//void register_droptarget(bool set);
 
-    // window callback
-    static LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
-    LRESULT wnd_proc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+	// window callback
+	static LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+	LRESULT wnd_proc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
-    // popup/close delay
-    void set_timer(bool active, bool set); /*BlackboxZero 1.3.2012 */
-    void set_capture(int flg);
+	// popup/close delay
+	void set_timer(bool active, bool set); /*BlackboxZero 1.3.2012 */
+	void set_capture(int flg);
 
-    // init / exit
-    void make_menu_window(void);
-    void destroy_menu_window(bool force);
-    void post_autohide();
+	// init / exit
+	void make_menu_window(void);
+	void destroy_menu_window(bool force);
+	void post_autohide();
 
-    // scrolling
-    int get_y_range(int *py0, int *ps);
-    void get_vscroller_rect(RECT* rw);
-    int calc_topindex (bool adjust);
-    void set_vscroller(int ymouse);
-    void scroll_assign_items(int n);
-    void scroll_menu(int n);
+	// scrolling
+	int get_y_range(int* py0, int* ps);
+	void get_vscroller_rect(RECT* rw);
+	int calc_topindex(bool adjust);
+	void set_vscroller(int ymouse);
+	void scroll_assign_items(int n);
+	void scroll_menu(int n);
 
-    // keyboard
-    MenuItem * kbd_get_next_shortcut(const char *d);
-    void kbd_hilite(MenuItem *pItem);
+	// keyboard
+	MenuItem* kbd_get_next_shortcut(const char* d);
+	void kbd_hilite(MenuItem* pItem);
 
-    // retrieve specific things
-    Menu *menu_root (void);
-    int get_item_index(MenuItem *item);
-    bool has_focus_in_chain(void);
-    bool has_hwnd_in_chain(HWND hwnd);
-    MenuItem * nth_item(int a);
+	// retrieve specific things
+	Menu* menu_root(void);
+	int get_item_index(MenuItem* item);
+	bool has_focus_in_chain(void);
+	bool has_hwnd_in_chain(HWND hwnd);
+	MenuItem* nth_item(int a);
 
-    // mouse
-    void mouse_over(bool indrag);
-    void mouse_leave(void);
-    LPCITEMIDLIST dragover(POINT* ppt);
-    void start_drag(const char *path, LPCITEMIDLIST pidl);
+	// mouse
+	void mouse_over(bool indrag);
+	void mouse_leave(void);
+	//LPCITEMIDLIST dragover(POINT* ppt);
+	//void start_drag(const char *path, LPCITEMIDLIST pidl);
 
-    // other
-    void write_menu_pos(void);
-    void insert_at_last (void);
-    void set_focus(void);
-    void bring_ontop(bool force_active);
-    void menu_set_pos(HWND after, UINT flags);
-    void on_killfocus(HWND newfocus);
-    void on_setfocus(HWND oldFocus);
-    void hide_on_click(void);
+	// other
+	void write_menu_pos(void);
+	void insert_at_last(void);
+	void set_focus(void);
+	void bring_ontop(bool force_active);
+	void menu_set_pos(HWND after, UINT flags);
+	void on_killfocus(HWND newfocus);
+	void on_setfocus(HWND oldFocus);
+	void hide_on_click(void);
 
-    void Redraw(int mode);
-    void RedrawGUI(int flags);
-    void RestoreState(void);
-    void SaveState(void);
-    void ShowMenu(void);
+	void Redraw(int mode);
+	void RedrawGUI(int flags);
+	void RestoreState(void);
+	void SaveState(void);
+	void ShowMenu(void);
 
-    // for inserting SpecialFolderItems
-    int AddFolderContents(const struct pidl_node *pidl_list, const char *extra);
+	// for inserting SpecialFolderItems
+	int AddFolderContents(const struct pidl_node* pidl_list, const char* extra);
 
-    // -------------------------------------
-    // overall menu functions
-    static void ignore_mouse_msgs(void);
-    static Menu *last_active_menu_root(void);
-    static Menu *find_named_menu(const char * IDString, bool fuzzy = false);
-    static void Sort(MenuItem **, int(*cmp_fn)(MenuItem **, MenuItem**));
+	// -------------------------------------
+	// overall menu functions
+	static void ignore_mouse_msgs(void);
+	static Menu* last_active_menu_root(void);
+	static Menu* find_named_menu(const char* IDString, bool fuzzy = false);
+	static void Sort(MenuItem**, int(*cmp_fn)(MenuItem**, MenuItem**));
 
-    static bool del_menu(Menu *m, void *ud);
-    static bool toggle_menu(Menu *m, void *ud);
-    static bool redraw_menu(Menu *m, void *ud);
-    static bool hide_menu(Menu *m, void *ud);
+	static bool del_menu(Menu* m, void* ud);
+	static bool toggle_menu(Menu* m, void* ud);
+	static bool redraw_menu(Menu* m, void* ud);
+	static bool hide_menu(Menu* m, void* ud);
 
-    static Menu *find_special_folder(struct pidl_node* p1);
+	static Menu* find_special_folder(struct pidl_node* p1);
 
-    // -------------------------------------
-    // friend functions
+	// -------------------------------------
+	// friend functions
 
-    // init/exit
-    friend void register_menuclass(void);
-    friend void un_register_menuclass(void);
+	// init/exit
+	friend void register_menuclass(void);
+	friend void un_register_menuclass(void);
 
-    // PluginMenu API friends
-    friend Menu* MakeMenu(const char* HeaderText);
-    friend Menu* MakeNamedMenu(const char* HeaderText, const char* IDString, bool popup);
-    friend void ShowMenu(Menu *PluginMenu);
-    friend void ShowMenuEx(Menu *PluginMenu, int flags, ...);
-    friend bool MenuExists(const char* IDString_start);
-    friend MenuItem* MakeSubmenu(Menu *ParentMenu, Menu *ChildMenu, const char* Title);
-    friend MenuItem* MakeMenuItem(Menu *PluginMenu, const char* Title, const char* Cmd, bool ShowIndicator);
-    friend MenuItem* MakeMenuItemInt(Menu *PluginMenu, const char* Title, const char* Cmd, int val, int minval, int maxval);
-    friend MenuItem* MakeMenuItemString(Menu *PluginMenu, const char* Title, const char* Cmd, const char* init_string);
-    friend MenuItem* MakeMenuNOP(Menu *PluginMenu, const char* Title);
-    friend MenuItem* MakeMenuGrip(Menu *PluginMenu, LPCSTR Title);
-    friend MenuItem* MakeMenuItemPath(Menu *ParentMenu, const char* Title, const char* path, const char* Cmd);
-	friend MenuItem* MakeMenuInsertPath(Menu *ParentMenu, const char* Title, const char* path, const char* Cmd);
-    friend Menu* MakeFolderMenu(const char *title, const char* path, const char *cmd);
-    friend void MenuOption(Menu *pMenu, int flags, ...);
-    friend void MenuItemOption(MenuItem *pItem, int option, ...);
-    friend Menu* ParseMenu(struct menu_src *src, const char *title, const char *IDString);
+	// PluginMenu API friends
+	friend Menu* MakeMenu(const char* HeaderText);
+	friend Menu* MakeNamedMenu(const char* HeaderText, const char* IDString, bool popup);
+	friend void ShowMenu(Menu* PluginMenu);
+	friend void ShowMenuEx(Menu* PluginMenu, int flags, ...);
+	friend bool MenuExists(const char* IDString_start);
+	friend MenuItem* MakeSubmenu(Menu* ParentMenu, Menu* ChildMenu, const char* Title);
+	friend MenuItem* MakeMenuItem(Menu* PluginMenu, const char* Title, const char* Cmd, bool ShowIndicator);
+	friend MenuItem* MakeMenuItemInt(Menu* PluginMenu, const char* Title, const char* Cmd, int val, int minval, int maxval);
+	friend MenuItem* MakeMenuItemString(Menu* PluginMenu, const char* Title, const char* Cmd, const char* init_string);
+	friend MenuItem* MakeMenuNOP(Menu* PluginMenu, const char* Title);
+	friend MenuItem* MakeMenuGrip(Menu* PluginMenu, LPCSTR Title);
+	friend MenuItem* MakeMenuItemPath(Menu* ParentMenu, const char* Title, const char* path, const char* Cmd);
+	friend MenuItem* MakeMenuInsertPath(Menu* ParentMenu, const char* Title, const char* path, const char* Cmd);
+	friend Menu* MakeFolderMenu(const char* title, const char* path, const char* cmd);
+	friend void MenuOption(Menu* pMenu, int flags, ...);
+	friend void MenuItemOption(MenuItem* pItem, int option, ...);
+	friend Menu* ParseMenu(struct menu_src* src, const char* title, const char* IDString);
 
-    friend void DelMenu(Menu *PluginMenu);
-    friend MenuItem* helper_menu(Menu *PluginMenu, const char* Title, int menuID, MenuItem *pItem);
+	friend void DelMenu(Menu* PluginMenu);
+	friend MenuItem* helper_menu(Menu* PluginMenu, const char* Title, int menuID, MenuItem* pItem);
 
-    // other (also in MenuMaker.h)
-    friend void Menu_Init(void);
-    friend void Menu_Exit(void);
-    friend void Menu_Reconfigure(void);
-    friend void Menu_Stats(struct menu_stats *st);
-    friend bool Menu_IsA(HWND);
+	// other (also in MenuMaker.h)
+	friend void Menu_Init(void);
+	friend void Menu_Exit(void);
+	friend void Menu_Reconfigure(void);
+	friend void Menu_Stats(struct menu_stats* st);
+	friend bool Menu_IsA(HWND);
 
-    friend Menu *MenuEnum(MENUENUMPROC fn, void *ud);
-    friend void Menu_All_Redraw(int flags);
-    friend void Menu_All_Toggle(bool hidden);
-    friend void Menu_All_BringOnTop(void);
-    friend void Menu_All_Hide(void);
-    friend void Menu_All_Hide_But(Menu*);
-    friend bool Menu_Exists(bool pinned);
-    friend void Menu_Update(int what);
-    friend void Menu_Tab_Next(Menu *start);
-    friend bool Menu_ToggleCheck(const char* menu_id);
+	friend Menu* MenuEnum(MENUENUMPROC fn, void* ud);
+	friend void Menu_All_Redraw(int flags);
+	friend void Menu_All_Toggle(bool hidden);
+	friend void Menu_All_BringOnTop(void);
+	friend void Menu_All_Hide(void);
+	friend void Menu_All_Hide_But(Menu*);
+	friend bool Menu_Exists(bool pinned);
+	friend void Menu_Update(int what);
+	friend void Menu_Tab_Next(Menu* start);
+	friend bool Menu_ToggleCheck(const char* menu_id);
 
-    // friend classes
-    friend class MenuItem;
-    friend class SeparatorItem;
-    friend class TitleItem;
-    friend class MenuGrip;
-    friend class FolderItem;
-    friend class CommandItem;
-    friend class CommandItemEx;
-    friend class IntegerItem;
-    friend class StringItem;
-    friend class SearchItem;
-    friend class SpecialFolder;
-    friend class SpecialFolderItem;
-    friend class SFInsert;
-    friend class ContextMenu;
-    friend class ContextItem;
+	// friend classes
+	friend class MenuItem;
+	friend class SeparatorItem;
+	friend class TitleItem;
+	friend class MenuGrip;
+	friend class FolderItem;
+	friend class CommandItem;
+	friend class CommandItemEx;
+	friend class IntegerItem;
+	friend class StringItem;
+	friend class SearchItem;
+	friend class SpecialFolder;
+	friend class SpecialFolderItem;
+	friend class SFInsert;
+	friend class ContextMenu;
+	friend class ContextItem;
 	friend class ArgItem;
 };
 
@@ -315,70 +314,69 @@ protected:
 #define MENU_CAPT_ITEM 2
 
 //=======================================
-class MenuItem
-{
+class MenuItem {
 public:
-    MenuItem *next;
+	MenuItem* next;
 
-    MenuItem(const char* pszTitle);
-    virtual ~MenuItem();
+	MenuItem(const char* pszTitle);
+	virtual ~MenuItem();
 
-    virtual void Measure(HDC hDC, SIZE *size, StyleItem * pSI);
-    virtual void Paint(HDC hDC);
-    virtual void Invoke(int button);
-    virtual void Mouse(HWND hw, UINT nMsg, DWORD, DWORD);
-    virtual void Key(UINT nMsg, WPARAM wParam);
-    virtual void ItemTimer(UINT nTimer);
-    virtual void ShowSubmenu(void);
+	virtual void Measure(HDC hDC, SIZE* size, StyleItem* pSI);
+	virtual void Paint(HDC hDC);
+	virtual void Invoke(int button);
+	virtual void Mouse(HWND hw, UINT nMsg, DWORD, DWORD);
+	virtual void Key(UINT nMsg, WPARAM wParam);
+	virtual void ItemTimer(UINT nTimer);
+	virtual void ShowSubmenu(void);
 
-    void UnlinkSubmenu(void);
-    void LinkSubmenu(Menu *pSubMenu);
-    void Active(int bActive);
-    void ShowRightMenu(Menu *pSub);
-    void ShowContextMenu(const char *path, const void * pidl);
+	void UnlinkSubmenu(void);
+	void LinkSubmenu(Menu* pSubMenu);
+	void Active(int bActive);
+	void ShowRightMenu(Menu* pSub);
+	void ShowContextMenu(const char* path, const void* pidl);
 
-    void GetItemRect(RECT* r);
-    void GetTextRect(RECT* r);
-    const char* GetDisplayString(void);
-    LPCITEMIDLIST GetPidl(void);
+	void GetItemRect(RECT* r);
+	void GetTextRect(RECT* r);
+	const char* GetDisplayString(void);
+	LPCITEMIDLIST GetPidl(void);
 
-    MenuItem *get_real_item(void);
+	MenuItem* get_real_item(void);
 
-    // mouse over check
-    inline bool isover(int y) { return y >= m_nTop && y < m_nTop + m_nHeight; }
+	// mouse over check
+	inline bool isover(int y) { return y >= m_nTop && y < m_nTop + m_nHeight; }
 
-    // ----------------------
-    char *m_pszTitle;
-    char *m_pszCommand;
-    char *m_pszRightCommand;
-    struct pidl_node *m_pidl_list;
+	// ----------------------
+	char* m_pszTitle;
+	char* m_pszCommand;
+	char* m_pszRightCommand;
+	struct pidl_node* m_pidl_list;
 
-    Menu* m_pMenu;          // the menu where the item is on
-    Menu* m_pSubmenu;       // for folder items, also context menus
-    Menu* m_pRightmenu;     // optional rightclick menu
+	Menu* m_pMenu;          // the menu where the item is on
+	Menu* m_pSubmenu;       // for folder items, also context menus
+	Menu* m_pRightmenu;     // optional rightclick menu
 
-    int m_nTop;             // metrics
-    int m_nLeft;
-    int m_nWidth;
-    int m_nHeight;
+	int m_nTop;             // metrics
+	int m_nLeft;
+	int m_nWidth;
+	int m_nHeight;
 
-    int m_Justify;          // alignment
-    int m_ItemID;           // see below
-    int m_nSortPriority;    // see below
+	int m_Justify;          // alignment
+	int m_ItemID;           // see below
+	int m_nSortPriority;    // see below
 
-    bool m_bActive;         // hilite
-    bool m_bNOP;            // just text
-    bool m_bDisabled;       // draw with disabledColor
-    bool m_bChecked;        // draw check mark
+	bool m_bActive;         // hilite
+	bool m_bNOP;            // just text
+	bool m_bDisabled;       // draw with disabledColor
+	bool m_bChecked;        // draw check mark
 
 //#ifdef BBOPT_MENUICONS
-    HICON m_hIcon;
-    char *m_pszIcon;
-    void DrawIcon(HDC hDC);
-//#endif
+	HICON m_hIcon;
+	char* m_pszIcon;
+	void DrawIcon(HDC hDC);
+	//#endif
 private:
-    struct IconLoaderWorkItem* m_iconLoaderWorkItem;
-    HANDLE                     m_iconLoaderThread;
+	struct IconLoaderWorkItem* m_iconLoaderWorkItem;
+	HANDLE                     m_iconLoaderThread;
 };
 
 //---------------------------------
@@ -426,82 +424,78 @@ private:
 // A structure with precalculated menu metrics,
 // as filled in by 'Menu_Reconfigure()'.
 
-struct MenuInfo
-{
-    HFONT hFrameFont; // fonts...
-    HFONT hTitleFont;
+struct MenuInfo {
+	HFONT hFrameFont; // fonts...
+	HFONT hTitleFont;
 
-    int nTitleHeight; // total height of title
-    int nTitleIndent; // left/right text indent
+	int nTitleHeight; // total height of title
+	int nTitleIndent; // left/right text indent
 
-    int nItemHeight; // height of normal item
-    int nItemLeftIndent; // text indent
-    int nItemRightIndent;
+	int nItemHeight; // height of normal item
+	int nItemLeftIndent; // text indent
+	int nItemRightIndent;
 
-    int nFrameMargin; // outer margin of menu frame, including border
-    int nTitleMargin; // frame margin around title (normally 0)
+	int nFrameMargin; // outer margin of menu frame, including border
+	int nTitleMargin; // frame margin around title (normally 0)
 
-    int nSubmenuOverlap;
-    int MinWidth;     // as configured /* BlackboxZero 12.17.2011 */
-    int MaxWidth;     // as configured
+	int nSubmenuOverlap;
+	int MinWidth;     // as configured /* BlackboxZero 12.17.2011 */
+	int MaxWidth;     // as configured
 
-    COLORREF separatorColor;
-    int separatorWidth; // in pixel
-    bool check_is_pr; // whether checkmarks cant use the hilite style
-    bool openLeft;
+	COLORREF separatorColor;
+	int separatorWidth; // in pixel
+	bool check_is_pr; // whether checkmarks cant use the hilite style
+	bool openLeft;
 
-    // presets for possible scrollbuttons
-    int nScrollerSize;
-    int nScrollerSideOffset;
-    int nScrollerTopOffset;
-    int nScrollerPosition; /* BlackboxZero 1.7.2012 */
-    StyleItem Scroller;
+	// presets for possible scrollbuttons
+	int nScrollerSize;
+	int nScrollerSideOffset;
+	int nScrollerTopOffset;
+	int nScrollerPosition; /* BlackboxZero 1.7.2012 */
+	StyleItem Scroller;
 
-    int nBulletPosition;
-    int nBulletStyle;
-    int nIconSize;
+	int nBulletPosition;
+	int nBulletStyle;
+	int nIconSize;
 };
 
 extern struct MenuInfo MenuInfo;
 
 struct IconLoaderWorkItem {
-    LPCITEMIDLIST pidl;
-    HICON icon;
-    int iconSize;
-    RECT iconRect;
-    int retries;
-    bool abort;
+	LPCITEMIDLIST pidl;
+	HICON icon;
+	int iconSize;
+	RECT iconRect;
+	int retries;
+	bool abort;
 
-    HWND m_hwnd;
-    HANDLE iconMutex;
-    //HANDLE dtorMutex;
-    HANDLE loaderLock;
+	HWND m_hwnd;
+	HANDLE iconMutex;
+	//HANDLE dtorMutex;
+	HANDLE loaderLock;
 };
 
 //=======================================
-class SeparatorItem : public MenuItem
-{
+class SeparatorItem : public MenuItem {
 public:
-    SeparatorItem() : MenuItem("") {}
-	virtual void Measure(HDC hDC, SIZE *size, StyleItem * pSI);
-    void Paint(HDC hDC);
+	SeparatorItem() : MenuItem("") {}
+	virtual void Measure(HDC hDC, SIZE* size, StyleItem* pSI);
+	void Paint(HDC hDC);
 };
 
 //=======================================
-class TitleItem : public MenuItem
-{
+class TitleItem : public MenuItem {
 public:
-    TitleItem(const char* pszTitle) : MenuItem(pszTitle) {}
-    void Paint(HDC hDC);
-    void Mouse(HWND hw, UINT nMsg, DWORD wP, DWORD lP);
+	TitleItem(const char* pszTitle) : MenuItem(pszTitle) {}
+	void Paint(HDC hDC);
+	void Mouse(HWND hw, UINT nMsg, DWORD wP, DWORD lP);
 };
 
-class MenuGrip : public MenuItem
-{
+class MenuGrip : public MenuItem {
 public:
-  MenuGrip(const char* pszTitle) : MenuItem(pszTitle) {}
-  void Paint(HDC hDC);
-  void Mouse(HWND hw, UINT nMsg, DWORD wP, DWORD lP);
+	MenuGrip(const char* pszTitle) : MenuItem(pszTitle) {}
+	void Paint(HDC hDC);
+	void Mouse(HWND hw, UINT nMsg, DWORD wP, DWORD lP);
 };
 
 
@@ -509,144 +503,135 @@ public:
 // An menuitem that is a pointer to a sub menu, these folder items
 // typically contain a |> icon at their right side.
 
-class FolderItem : public MenuItem
-{
+class FolderItem : public MenuItem {
 public:
-    FolderItem(Menu* pSubMenu, const char* pszTitle);
-    void Paint(HDC hDC);
-    void Invoke(int button);
+	FolderItem(Menu* pSubMenu, const char* pszTitle);
+	void Paint(HDC hDC);
+	void Invoke(int button);
 };
 
 //=======================================
-class CommandItem : public MenuItem
-{
+class CommandItem : public MenuItem {
 public:
-    CommandItem(const char* pszCommand, const char* pszTitle, bool bChecked);
-    void Invoke(int button);
-    void next_item (WPARAM wParam);
+	CommandItem(const char* pszCommand, const char* pszTitle, bool bChecked);
+	void Invoke(int button);
+	void next_item(WPARAM wParam);
 };
 
 //=======================================
-class IntegerItem : public CommandItem
-{
+class IntegerItem : public CommandItem {
 public:
-    IntegerItem(const char* pszCommand, int value, int minval, int maxval);
+	IntegerItem(const char* pszCommand, int value, int minval, int maxval);
 
-    void Mouse(HWND hwnd, UINT uMsg, DWORD wParam, DWORD lParam);
-    void Invoke(int button);
-    void ItemTimer(UINT nTimer);
-    void Measure(HDC hDC, SIZE *size, StyleItem * pSI);
-    void Key(UINT nMsg, WPARAM wParam);
-    void set_next_value(void);
+	void Mouse(HWND hwnd, UINT uMsg, DWORD wParam, DWORD lParam);
+	void Invoke(int button);
+	void ItemTimer(UINT nTimer);
+	void Measure(HDC hDC, SIZE* size, StyleItem* pSI);
+	void Key(UINT nMsg, WPARAM wParam);
+	void set_next_value(void);
 
-    int m_value;
-    int m_min;
-    int m_max;
-    int m_count;
-    int m_direction;
-    int m_oldsize;
-    int m_offvalue;
-    const char *m_offstring;
+	int m_value;
+	int m_min;
+	int m_max;
+	int m_count;
+	int m_direction;
+	int m_oldsize;
+	int m_offvalue;
+	const char* m_offstring;
 };
 
 //=======================================
-class StringItem : public CommandItem
-{
+class StringItem : public CommandItem {
 public:
-    StringItem(const char* pszCommand, const char *init_string);
-    ~StringItem();
+	StringItem(const char* pszCommand, const char* init_string);
+	~StringItem();
 
-    void Paint(HDC hDC);
-    void Measure(HDC hDC, SIZE *size, StyleItem * pSI);
-    void Invoke(int button);
+	void Paint(HDC hDC);
+	void Measure(HDC hDC, SIZE* size, StyleItem* pSI);
+	void Invoke(int button);
 
-    static LRESULT CALLBACK EditProc(HWND hText, UINT msg, WPARAM wParam, LPARAM lParam);
-    HWND hText;
-    WNDPROC wpEditProc;
-    RECT m_textrect;
+	static LRESULT CALLBACK EditProc(HWND hText, UINT msg, WPARAM wParam, LPARAM lParam);
+	HWND hText;
+	WNDPROC wpEditProc;
+	RECT m_textrect;
 };
 
 //=======================================
 // a menu containing items from a folder
-class SpecialFolder : public Menu
-{
+class SpecialFolder : public Menu {
 public:
-    SpecialFolder(const char *pszTitle, const struct pidl_node *pidl_list, const char  *pszExtra);
-    ~SpecialFolder();
-    void UpdateFolder(void);
-    friend class SpecialFolderItem;
+	SpecialFolder(const char* pszTitle, const struct pidl_node* pidl_list, const char* pszExtra);
+	~SpecialFolder();
+	void UpdateFolder(void);
+	friend class SpecialFolderItem;
 private:
-    char *m_pszExtra;
+	char* m_pszExtra;
 };
 
 //=======================================
 // an item that opens a SpecialFolder - unlike with
 // other submenus these are not built until needed
-class SpecialFolderItem : public FolderItem
-{
+class SpecialFolderItem : public FolderItem {
 public:
-    SpecialFolderItem(const char* pszTitle, const char *path, struct pidl_node* pidl_list, const char *pszExtra);
-    ~SpecialFolderItem();
-    void ShowSubmenu(void);
-    void Invoke(int button);
-    friend class SpecialFolder;
+	SpecialFolderItem(const char* pszTitle, const char* path, struct pidl_node* pidl_list, const char* pszExtra);
+	~SpecialFolderItem();
+	void ShowSubmenu(void);
+	void Invoke(int button);
+	friend class SpecialFolder;
 private:
-    char *m_pszExtra;
+	char* m_pszExtra;
 };
 
 //=======================================
 // an invisble item that expands into a folder listing when validated
-class SFInsert : public MenuItem
-{
+class SFInsert : public MenuItem {
 public:
-    SFInsert(const char *pszPath, const char *pszExtra);
-    ~SFInsert();
-    void Paint(HDC hDC);
-    void Measure(HDC hDC, SIZE *size);
-    void RemoveStuff(void);
+	SFInsert(const char* pszPath, const char* pszExtra);
+	~SFInsert();
+	void Paint(HDC hDC);
+	void Measure(HDC hDC, SIZE* size);
+	void RemoveStuff(void);
 private:
-    char *m_pszExtra;
-    MenuItem *m_pLast;
+	char* m_pszExtra;
+	MenuItem* m_pLast;
 };
 
 //=======================================
 /* ContextMenu.cpp */
-class ContextMenu : public Menu
-{
+class ContextMenu : public Menu {
 public:
-    ContextMenu (const char* title, class ShellContext* w, HMENU hm, int m);
-    ~ContextMenu();
+	ContextMenu(const char* title, class ShellContext* w, HMENU hm, int m);
+	~ContextMenu();
 private:
-    void Copymenu (HMENU hm);
-    class ShellContext *wc;
-    friend class ContextItem;
+	void Copymenu(HMENU hm);
+	class ShellContext* wc;
+	friend class ContextItem;
 };
 
-class ContextItem : public FolderItem
-{
+class ContextItem : public FolderItem {
 public:
-    ContextItem(Menu *m, char* pszTitle, int id, DWORD data, UINT type);
-    ~ContextItem();
-    void Paint(HDC hDC);
-    void Measure(HDC hDC, SIZE *size, StyleItem * pSI);
-    void Invoke(int button);
-    void DrawItem(HDC hdc, int w, int h, bool active);
+	ContextItem(Menu* m, char* pszTitle, int id, DWORD data, UINT type);
+	~ContextItem();
+	void Paint(HDC hDC);
+	void Measure(HDC hDC, SIZE* size, StyleItem* pSI);
+	void Invoke(int button);
+	void DrawItem(HDC hdc, int w, int h, bool active);
 private:
-    int   m_id;
-    DWORD m_data;
-    UINT  m_type;
+	int   m_id;
+	DWORD m_data;
+	UINT  m_type;
 
-    int m_icon_offset;
-    HBITMAP m_bmp;
-    int m_bmp_width;
-    COLORREF cr_back;
+	int m_icon_offset;
+	HBITMAP m_bmp;
+	int m_bmp_width;
+	COLORREF cr_back;
 };
 
 // ==============================================================
 /* droptarget.cpp */
-class CDropTarget *init_drop_target(HWND hwnd, LPCITEMIDLIST pidl);
-void exit_drop_target(class CDropTarget  *);
-bool in_drop(class CDropTarget *dt);
+class CDropTarget* init_drop_target(HWND hwnd, LPCITEMIDLIST pidl);
+void exit_drop_target(class CDropTarget*);
+bool in_drop(class CDropTarget* dt);
 
 /* dropsource.cpp */
 void init_drop(HWND hwnd);
@@ -654,9 +639,9 @@ void exit_drop(HWND hwnd);
 void drag_pidl(LPCITEMIDLIST pidl);
 
 // SpecialFolder.cpp
-int LoadFolder(MenuItem **, LPCITEMIDLIST pIDFolder, const char  *pszExtra, int options);
+int LoadFolder(MenuItem**, LPCITEMIDLIST pIDFolder, const char* pszExtra, int options);
 enum { LF_join = 1, LF_norecurse = 2 };
 void show_props(LPCITEMIDLIST pidl);
 
-//===========================================================================
+
 #endif /*ndef _MENU_H_ */

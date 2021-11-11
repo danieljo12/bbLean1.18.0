@@ -22,7 +22,7 @@
 #ifndef _MENUMAKER_H_
 #define _MENUMAKER_H_
 
-// This file defines the public menu interface.
+  // This file defines the public menu interface.
 
 class Menu;
 //====================
@@ -34,14 +34,14 @@ bool MenuMaker_ShowMenu(int id, const char* param);
 // Menu.cpp
 
 struct menu_stats {
-    int menu_count;
-    int item_count;
+	int menu_count;
+	int item_count;
 };
 
 void Menu_Init(void);
 void Menu_Exit(void);
 void Menu_Reconfigure(void);
-void Menu_Stats(struct menu_stats *st);
+void Menu_Stats(struct menu_stats* st);
 bool Menu_IsA(HWND);
 bool Menu_Exists(bool pinned);
 
@@ -57,24 +57,23 @@ void Menu_Update(int id);
 #define MENU_UPD_TASKS   2
 #define MENU_UPD_CONFIG  3
 
-char *Core_IDString(char *buffer, const char *menu_id);
-bool get_opt_command(char *opt_cmd, const char *cmd);
-Menu * MakeRootMenu(const char *menu_id, const char *path, const char *default_menu, bool pop);
+char* Core_IDString(char* buffer, const char* menu_id);
+bool get_opt_command(char* opt_cmd, const char* cmd);
+Menu* MakeRootMenu(const char* menu_id, const char* path, const char* default_menu, bool pop);
 
 //====================
 // ConfigMenu.cpp
 
-struct cfgmenu
-{
-    const char *text;
-    const char *command;
-    const void *pvalue;
+struct cfgmenu {
+	const char* text;
+	const char* command;
+	const void* pvalue;
 };
 
 Menu* MakeConfigMenu(bool popup);
-Menu *CfgMenuMaker(const char *title, const char *defbroam, const struct cfgmenu *pm, bool pop, char *menu_id);
-int exec_cfg_command(const char *pszCommand);
-const void *exec_internal_broam(const char *argument, const struct cfgmenu *menu_root, const struct cfgmenu **p_menu, const struct cfgmenu **p_item);
+Menu* CfgMenuMaker(const char* title, const char* defbroam, const struct cfgmenu* pm, bool pop, char* menu_id);
+int exec_cfg_command(const char* pszCommand);
+const void* exec_internal_broam(const char* argument, const struct cfgmenu* menu_root, const struct cfgmenu** p_menu, const struct cfgmenu** p_item);
 
 //====================
 // DesktopMenu.cpp
@@ -87,12 +86,12 @@ void ShowRecoverMenu(void);
 //====================
 // SpecialFolder.cpp
 
-Menu *MakeFolderMenu(const char *title, const char* path, const char *cmd);
+Menu* MakeFolderMenu(const char* title, const char* path, const char* cmd);
 
 //====================
 // ContextMenu.cpp
 
-Menu *MakeContextMenu(const char *path, const void *pidl);
+Menu* MakeContextMenu(const char* path, const void* pidl);
 
 
 //====================
@@ -103,5 +102,5 @@ Menu *MakeContextMenu(const char *path, const void *pidl);
 #define MM_THEME_BROAM "@BBCore.theme %s"
 #define MM_ROOT_BROAM "@BBCore.rootCommand %s"
 
-//===========================================================================
+
 #endif /* ndef _MENUMAKER_H_s */

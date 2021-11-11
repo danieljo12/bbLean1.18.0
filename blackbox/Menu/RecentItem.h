@@ -36,8 +36,8 @@
 #include <shlobj.h>
 #include <limits.h>
 
-typedef struct ItemList{
-	struct ItemList *next;
+typedef struct ItemList {
+	struct ItemList* next;
 	char szItem[MAX_PATH];
 	UINT nFrequency;
 } ItemList;
@@ -46,7 +46,7 @@ typedef struct ItemList{
 #define _strcpy(dest, src) strncpy(dest, src, sizeof(dest) - 1)
 #define _sprintf(str, format, ...) snprintf(str, sizeof(str) - 1, format, __VA_ARGS__)
 
-int CreateRecentItemMenu(char *pszFileName, char *pszCommand, char *pszTitle, char *pszIcon, int nKeep, int nSort, bool bBeginEnd);
-ItemList *sortlist(ItemList *il);
+int CreateRecentItemMenu(char* pszFileName, char* pszCommand, char* pszTitle, char* pszIcon, int nKeep, int nSort, bool bBeginEnd);
+ItemList* sortlist(ItemList* il);
 
 #endif /* __RECENTITEM_H */

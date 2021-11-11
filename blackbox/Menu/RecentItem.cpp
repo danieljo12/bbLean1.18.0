@@ -28,28 +28,22 @@
 */
 
 #include "RecentItem.h"
-//===========================================================================
-/*bool is_relative_path(const char *path)
-{
-	if (IS_SLASH(path[0])) return false;
-	if (strchr(path, ':')) return false;
-	return true;
-}*/
 
-char *make_bb_path(char *dest, const char *src)
+char* make_bb_path(char* dest, const char* src)
 {
-	dest[0]=0;
+	dest[0] = 0;
 	if (is_relative_path(src))
 		GetBlackboxPath(dest, MAX_PATH);
 	return strcat(dest, src);
 }
 
-int CreateRecentItemMenu(char *pszFileName, char *pszCommand, char *pszTitle, char *pszIcon, int nKeep, int nSort, bool bBeginEnd){
-	static ItemList *KeepItemList;
-	static ItemList *SortItemList;
+int CreateRecentItemMenu(char* pszFileName, char* pszCommand, char* pszTitle, char* pszIcon, int nKeep, int nSort, bool bBeginEnd)
+{
+	static ItemList* KeepItemList;
+	static ItemList* SortItemList;
 	char szFilePath[MAX_PATH];
 	char buf[MAX_PATH];
-	ItemList *iln = (ItemList*)m_alloc(sizeof(ItemList));
+	ItemList* iln = (ItemList*)m_alloc(sizeof(ItemList));
 
 	// make path (compliant with relative-path)
 	make_bb_path(szFilePath, pszFileName);
@@ -65,23 +59,29 @@ int CreateRecentItemMenu(char *pszFileName, char *pszCommand, char *pszTitle, ch
 
 	int cnt_k = 0; // keep items counter
 	int cnt_s = 0; // sort items counter
-	if (FILE *fp = fopen(szFilePath, "r")){ // read Recent-menu
-		while(fgets(buf, MAX_PATH, fp)){
+	if (FILE* fp = fopen(szFilePath, "r"))
+	{ // read Recent-menu
+		while (fgets(buf, MAX_PATH, fp))
+		{
 			if (strstr(buf, "[end]"))
 				break;
-			else if (strstr(buf, "[exec]")){
-				if (buf[strlen(buf)-1] == '\n') buf[strlen(buf)-1] = '\0';
-				char *p0 = strchr(buf, '{'); // command
-				char *p1 = strchr(buf, '}'); // end of command
-				if (p0 && p1){
+			else if (strstr(buf, "[exec]"))
+			{
+				if (buf[strlen(buf) - 1] == '\n') buf[strlen(buf) - 1] = '\0';
+				char* p0 = strchr(buf, '{'); // command
+				char* p1 = strchr(buf, '}'); // end of command
+				if (p0 && p1)
+				{
 					UINT nFrequency = 0;
-					if (char *p = strrchr(buf, '#')){
-						nFrequency = atoi(p+1);
-						while(*(p--) == ' '); // delete space of eol
+					if (char* p = strrchr(buf, '#'))
+					{
+						nFrequency = atoi(p + 1);
+						while (*(p--) == ' '); // delete space of eol
 						*p = '\0';
 					}
-					if (0 != strnicmp(pszCommand, p0+1 , p1 - p0 - 1)){ // ignore duplicated item
-						ItemList *il = (ItemList*)m_alloc(sizeof(ItemList));
+					if (0 != strnicmp(pszCommand, p0 + 1, p1 - p0 - 1))
+					{ // ignore duplicated item
+						ItemList* il = (ItemList*)m_alloc(sizeof(ItemList));
 						_strcpy(il->szItem, buf);
 						il->nFrequency = imin(nFrequency, UINT_MAX);
 						if (cnt_k++ < nKeep - 1)
@@ -91,7 +91,8 @@ int CreateRecentItemMenu(char *pszFileName, char *pszCommand, char *pszTitle, ch
 						else
 							m_free(il);
 					}
-					else{ // if duplicate, increment freq
+					else
+					{ // if duplicate, increment freq
 						iln->nFrequency += imin(nFrequency, UINT_MAX - 1);
 					}
 				}
@@ -106,18 +107,21 @@ int CreateRecentItemMenu(char *pszFileName, char *pszCommand, char *pszTitle, ch
 	if (isSortList)
 		SortItemList = sortlist(SortItemList);
 
-	if (FILE *fp = fopen(szFilePath, "w")){ // write Recent-menu
+	if (FILE* fp = fopen(szFilePath, "w"))
+	{ // write Recent-menu
 		if (bBeginEnd)
 			fprintf(fp, "[begin] (Recent Item)\n");
 
 		// most recent item
-		ItemList *p;
-		dolist (p, KeepItemList){
+		ItemList* p;
+		dolist(p, KeepItemList)
+		{
 			fprintf(fp, "%s #%u\n", p->szItem, p->nFrequency);
 		}
 		if (isKeepList && isSortList)
 			fprintf(fp, "\t[separator]\n");
-		dolist (p, SortItemList){
+		dolist(p, SortItemList)
+		{
 			fprintf(fp, "%s #%u\n", p->szItem, p->nFrequency);
 		}
 
@@ -131,11 +135,12 @@ int CreateRecentItemMenu(char *pszFileName, char *pszCommand, char *pszTitle, ch
 	freeall(&SortItemList);
 	return 0;
 }
-//===========================================================================
-ItemList *sortlist(ItemList *il){
+
+ItemList* sortlist(ItemList* il)
+{
 	ItemList dmy;
-	ItemList *p0,*p1;
-	ItemList *p;
+	ItemList* p0, * p1;
+	ItemList* p;
 
 	dmy.nFrequency = UINT_MAX;
 	dmy.next = il;
@@ -143,10 +148,13 @@ ItemList *sortlist(ItemList *il){
 	il->next = NULL;
 
 	p1 = p;
-	while(p1 != NULL){
+	while (p1 != NULL)
+	{
 		p0 = &dmy;
-		while(p0->next != NULL){
-			if(p1->nFrequency > p0->next->nFrequency){
+		while (p0->next != NULL)
+		{
+			if (p1->nFrequency > p0->next->nFrequency)
+			{
 				p = p1->next;
 				p1->next = p0->next;
 				p0->next = p1;
@@ -154,7 +162,8 @@ ItemList *sortlist(ItemList *il){
 			}
 			p0 = p0->next;
 		}
-		if(p0->next == NULL){
+		if (p0->next == NULL)
+		{
 			p = p1->next;
 			p0->next = p1;
 			p1->next = NULL;
@@ -163,4 +172,4 @@ ItemList *sortlist(ItemList *il){
 	}
 	return dmy.next;
 }
-//===========================================================================
+

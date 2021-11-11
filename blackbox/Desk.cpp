@@ -28,7 +28,6 @@
 #include "Menu/MenuMaker.h"
 #include <shlobj.h>
 #include <shellapi.h>
-
 #ifndef MK_ALT
 #define MK_ALT 0x20
 #endif
@@ -44,24 +43,26 @@ HWND hDesktopWnd;
 #ifndef BBTINY
 
 ST const char szDesktopName[] = "DesktopBackgroundClass";
-ST struct RootInfo {
+ST struct RootInfo
+{
     HBITMAP bmp;
     char command[MAX_PATH];
 } Root;
 
-ST LRESULT CALLBACK Desk_WndProc (HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+ST LRESULT CALLBACK Desk_WndProc(HWND hwnd , UINT uMsg , WPARAM wParam , LPARAM lParam);
 ST void set_bitmap(HBITMAP bmp);
 
 // in bbroot.cpp
-extern HBITMAP load_desk_bitmap(const char* command, bool makebmp);
+extern HBITMAP load_desk_bitmap(const char* command , bool makebmp);
+extern HBITMAP read_bitmap(const char* path , bool delete_after);
 
-static int get_drop_command(const char *filename, int flags);
+static int get_drop_command(const char* filename , int flags);
 unsigned get_modkeys(void);
 
-ST void (*pSetHooks)(HWND BlackboxWnd, int flags);
-static const char deskhook_dll [] = "deskhook.dll";
+ST void (*pSetHooks)(HWND BlackboxWnd , int flags);
+static const char deskhook_dll[] = "deskhook.dll";
 
-ST class DeskDropTarget *m_DeskDropTarget;
+ST class DeskDropTarget* m_DeskDropTarget;
 static void init_DeskDropTarget(HWND hwnd);
 static void exit_DeskDropTarget(HWND hwnd);
 
@@ -71,29 +72,27 @@ void Desk_Init(void)
     if (Settings_disableDesk)
         ;
     else
-    if (Settings_desktopHook)
-    {
-        if (load_imp(&pSetHooks, deskhook_dll, "SetHooks"))
-            pSetHooks(BBhwnd, g_underExplorer);
-        else
-            BBMessageBox(MB_OK, NLS2("$Error_DesktopHook$",
-                "Error: %s not found!"), deskhook_dll);
-    }
-    else
-    {
-        BBRegisterClass(szDesktopName, Desk_WndProc, BBCS_VISIBLE);
-        CreateWindowEx(
-            WS_EX_TOOLWINDOW,
-            szDesktopName,
-            NULL,
-            WS_CHILD|WS_VISIBLE|WS_CLIPCHILDREN|WS_CLIPSIBLINGS,
-            0,0,0,0,
-            GetDesktopWindow(),
-            NULL,
-            hMainInstance,
-            NULL
+        if (Settings_desktopHook) {
+            if (load_imp(&pSetHooks , deskhook_dll , "SetHooks"))
+                pSetHooks(BBhwnd , g_underExplorer);
+            else
+                BBMessageBox(MB_OK , NLS2("$Error_DesktopHook$" ,
+                             "Error: %s not found!") , deskhook_dll);
+        }
+        else {
+            BBRegisterClass(szDesktopName , Desk_WndProc , BBCS_VISIBLE);
+            CreateWindowEx(
+                WS_EX_TOOLWINDOW ,
+                szDesktopName ,
+                NULL ,
+                WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS ,
+                0 , 0 , 0 , 0 ,
+                GetDesktopWindow() ,
+                NULL ,
+                hMainInstance ,
+                NULL
             );
-    }
+        }
     Desk_new_background(NULL);
 }
 
@@ -101,31 +100,31 @@ void Desk_Init(void)
 void Desk_Exit(void)
 {
     if (have_imp(pSetHooks)) {
-        pSetHooks(NULL, 0);
+        pSetHooks(NULL , 0);
         FreeLibrary(GetModuleHandle(deskhook_dll));
     }
     pSetHooks = NULL;
 
     if (hDesktopWnd) {
         DestroyWindow(hDesktopWnd);
-        UnregisterClass(szDesktopName, hMainInstance);
+        UnregisterClass(szDesktopName , hMainInstance);
         hDesktopWnd = NULL;
     }
 
     Desk_Reset(true);
 }
 
-//===========================================================================
+
 
 ST void Desk_SetPosition(void)
 {
     SetWindowPos(
-        hDesktopWnd,
-        HWND_BOTTOM,
-        getWorkspaces().GetVScreenX(), getWorkspaces().GetVScreenY(),
-        getWorkspaces().GetVScreenWidth(), getWorkspaces().GetVScreenHeight(),
-        SWP_NOACTIVATE|SWP_NOSENDCHANGING
-        );
+        hDesktopWnd ,
+        HWND_BOTTOM ,
+        getWorkspaces().GetVScreenX() , getWorkspaces().GetVScreenY() ,
+        getWorkspaces().GetVScreenWidth() , getWorkspaces().GetVScreenHeight() ,
+        SWP_NOACTIVATE | SWP_NOSENDCHANGING
+    );
 }
 
 ST void set_bitmap(HBITMAP bmp)
@@ -134,14 +133,14 @@ ST void set_bitmap(HBITMAP bmp)
         DeleteObject(Root.bmp);
     Root.bmp = bmp;
     if (hDesktopWnd)
-        InvalidateRect(hDesktopWnd, NULL, FALSE);
+        InvalidateRect(hDesktopWnd , NULL , FALSE);
 }
 
 void Desk_Reset(bool all)
 {
     if (all)
         set_bitmap(NULL);
-    Root.command [0] = 0;
+    Root.command[0] = 0;
 }
 
 HBITMAP Desk_getbmp(void)
@@ -149,96 +148,92 @@ HBITMAP Desk_getbmp(void)
     return Root.bmp;
 }
 
-//===========================================================================
 
-void Desk_new_background(const char *p)
+
+void Desk_new_background(const char* p)
 {
     bool makebmp;
 
     p = Desk_extended_rootCommand(p);
-    if (p)
-    {
-        if (0 == _stricmp(p, "none"))
+    if (p) {
+        if (0 == _stricmp(p , "none"))
             p = "";
-        if (0 == _stricmp(p, "style"))
+        if (0 == _stricmp(p , "style"))
             p = NULL;
     }
     if (false == Settings_enableBackground)
         p = "";
     else
-    if (NULL == p)
-        p = mStyle.rootCommand;
+        if (NULL == p)
+            p = mStyle.rootCommand;
 
     makebmp = hDesktopWnd && Settings_smartWallpaper;
-    if (0 == strcmp(Root.command, p) && *p && (Root.bmp || !makebmp))
+    if (0 == strcmp(Root.command , p) && *p && (Root.bmp || !makebmp))
         return;
-	set_bitmap(load_desk_bitmap(p, makebmp));
+    set_bitmap(load_desk_bitmap(p , makebmp));
+    /*if (hDesktopWnd)
+        Desk_SetPosition();*/
+    strcpy(Root.command , p);
+    if (g_usingVista && 0 == *p)
+        SystemParametersInfo(SPI_SETDESKWALLPAPER , 0 , NULL , SPIF_SENDCHANGE);
+}
+
+void Desk_read_background(const char* p)
+{
+    bool makebmp;
+
+    Desk_Reset(true);
+
+    p = Desk_extended_rootCommand(p);
+    if (p) {
+        if (0 == _stricmp(p , "none"))
+            p = "";
+        if (0 == _stricmp(p , "style"))
+            p = NULL;
+    }
+    if (false == Settings_enableBackground)
+        p = "";
+    else
+        if (NULL == p)
+            p = mStyle.rootCommand;
+
+    makebmp = hDesktopWnd && Settings_smartWallpaper;
+    if (0 == strcmp(Root.command , p) && *p && (Root.bmp || !makebmp))
+        return;
+    set_bitmap(read_bitmap(p , makebmp));
     if (hDesktopWnd)
         Desk_SetPosition();
-    strcpy(Root.command, p);
+    strcpy(Root.command , p);
     if (g_usingVista && 0 == *p)
-        SystemParametersInfo(SPI_SETDESKWALLPAPER, 0, NULL, SPIF_SENDCHANGE);
-}
+        SystemParametersInfo(SPI_SETDESKWALLPAPER , 0 , NULL , SPIF_SENDCHANGE);
 
-void Desk_read_background(const char *p)
-{
-	bool makebmp;
-
-	Desk_Reset(true);
-
-	p = Desk_extended_rootCommand(p);
-	if (p)
-	{
-		if (0 == _stricmp(p, "none"))
-			p = "";
-		if (0 == _stricmp(p, "style"))
-			p = NULL;
-	}
-	if (false == Settings_enableBackground)
-		p = "";
-	else
-		if (NULL == p)
-			p = mStyle.rootCommand;
-
-	makebmp = hDesktopWnd && Settings_smartWallpaper;
-	if (0 == strcmp(Root.command, p) && *p && (Root.bmp || !makebmp))
-		return;
-	HBITMAP read_bitmap(const char* path, bool delete_after);
-	set_bitmap(read_bitmap(p, makebmp));
-	if (hDesktopWnd)
-		Desk_SetPosition();
-	strcpy(Root.command, p);
-	if (g_usingVista && 0 == *p)
-		SystemParametersInfo(SPI_SETDESKWALLPAPER, 0, NULL, SPIF_SENDCHANGE);
-
-	//PostMessage(BBhwnd, BB_REDRAWGUI, BBRG_DESK, 0);
+    //PostMessage(BBhwnd, BB_REDRAWGUI, BBRG_DESK, 0);
 }
 
 
-//===========================================================================
+
 // Desktop's window procedure
 
-ST LRESULT CALLBACK Desk_WndProc (HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+ST LRESULT CALLBACK Desk_WndProc(HWND hwnd , UINT uMsg , WPARAM wParam , LPARAM lParam)
 {
-    static const UINT msgs [] = { BB_DRAGTODESKTOP, BB_REDRAWGUI, 0 };
-    static bool button_down, dblclk;
+    static const UINT msgs[] = { BB_DRAGTODESKTOP, BB_REDRAWGUI, 0 };
+    static bool button_down , dblclk;
     int n;
 
-    switch (uMsg)
-    {
+    switch (uMsg) {
         //====================
         case WM_CREATE:
             hDesktopWnd = hwnd;
             MakeSticky(hwnd);
-            MessageManager_Register(hwnd, msgs, true);
+            MessageManager_Register(hwnd , msgs , true);
             init_DeskDropTarget(hwnd);
             Desk_SetPosition();
             break;
 
-        //====================
+            //====================
         case WM_DESTROY:
             exit_DeskDropTarget(hwnd);
-            MessageManager_Register(hwnd, msgs, false);
+            MessageManager_Register(hwnd , msgs , false);
             RemoveSticky(hwnd);
             break;
 
@@ -249,28 +244,27 @@ ST LRESULT CALLBACK Desk_WndProc (HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
             break;
 
         case WM_SETTINGCHANGE:
-			if (SPI_SETDESKWALLPAPER == wParam)
-			{
-				CHAR oldWallPaper[(MAX_PATH + 1)];
-				if (TRUE == SystemParametersInfo(SPI_GETDESKWALLPAPER, sizeof(oldWallPaper), &oldWallPaper, 0))
-					Desk_read_background(oldWallPaper);
-					//Desk_new_background(oldWallPaper);
-					//Desk_read_background(oldWallPaper);
-				Desk_SetPosition();
+            if (SPI_SETDESKWALLPAPER == wParam) {
+                CHAR oldWallPaper[(MAX_PATH + 1)];
+                if (TRUE == SystemParametersInfo(SPI_GETDESKWALLPAPER , sizeof(oldWallPaper) , &oldWallPaper , 0))
+                    Desk_read_background(oldWallPaper);
+                //Desk_new_background(oldWallPaper);
+                //Desk_read_background(oldWallPaper);
+                //Desk_SetPosition();
 
-				//InvalidateRect(hwnd, NULL, FALSE);
-			}
+                //InvalidateRect(hwnd, NULL, FALSE);
+            }
             break;
 
 
-        //====================
+            //====================
         case WM_CLOSE:
             break;
 
-        //====================
+            //====================
         case WM_MOUSEACTIVATE:
             return MA_NOACTIVATE;
-        
+
         case WM_LBUTTONDOWN:
         case WM_RBUTTONDOWN:
         case WM_MBUTTONDOWN:
@@ -279,7 +273,12 @@ ST LRESULT CALLBACK Desk_WndProc (HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
             button_down = true;
             if (uMsg == WM_LBUTTONDOWN) {
                 n = 0;
-                goto post_click_2;
+                wParam &= (MK_CONTROL | MK_SHIFT);
+                if (0x8000 & GetAsyncKeyState(VK_MENU))
+                    wParam |= MK_ALT;
+
+                PostMessage(BBhwnd , BB_DESKCLICK , wParam , n);
+                break;
             }
             break;
 
@@ -293,30 +292,70 @@ ST LRESULT CALLBACK Desk_WndProc (HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
             button_down = true;
             break;
 
-        case WM_LBUTTONUP: n = dblclk ? 7 : 1; goto post_click;
-        case WM_RBUTTONUP: n = 2; goto post_click;
-        case WM_MBUTTONUP: n = 3; goto post_click;
-        case WM_XBUTTONUP:
-            switch (HIWORD(wParam)) {
-            case XBUTTON1: n = 4; goto post_click;
-            case XBUTTON2: n = 5; goto post_click;
-            case XBUTTON3: n = 6; goto post_click;
-            } break;
+        case WM_LBUTTONUP:
+            n = dblclk ? 7 : 1;
 
-        post_click:
             if (false == button_down)
                 break;
             button_down = dblclk = false;
 
-        post_click_2:
-            wParam &= (MK_CONTROL|MK_SHIFT);
+            wParam &= (MK_CONTROL | MK_SHIFT);
             if (0x8000 & GetAsyncKeyState(VK_MENU))
                 wParam |= MK_ALT;
 
-            PostMessage(BBhwnd, BB_DESKCLICK, wParam, n);
+            PostMessage(BBhwnd , BB_DESKCLICK , wParam , n);
+            break;
+        case WM_RBUTTONUP:
+            n = 2;
+
+            if (false == button_down)
+                break;
+            button_down = dblclk = false;
+
+            wParam &= (MK_CONTROL | MK_SHIFT);
+            if (0x8000 & GetAsyncKeyState(VK_MENU))
+                wParam |= MK_ALT;
+
+            PostMessage(BBhwnd , BB_DESKCLICK , wParam , n);
+            break;
+        case WM_MBUTTONUP:
+            n = 3;
+
+            if (false == button_down)
+                break;
+            button_down = dblclk = false;
+
+            wParam &= (MK_CONTROL | MK_SHIFT);
+            if (0x8000 & GetAsyncKeyState(VK_MENU))
+                wParam |= MK_ALT;
+
+            PostMessage(BBhwnd , BB_DESKCLICK , wParam , n);
+            break;
+        case WM_XBUTTONUP:
+            switch (HIWORD(wParam)) {
+                case XBUTTON1:
+                    n = 4;
+                    break;
+                case XBUTTON2:
+                    n = 5;
+                    break;
+                case XBUTTON3:
+                    n = 6;
+                    break;
+            }
+
+            if (false == button_down)
+                break;
+            button_down = dblclk = false;
+
+            wParam &= (MK_CONTROL | MK_SHIFT);
+            if (0x8000 & GetAsyncKeyState(VK_MENU))
+                wParam |= MK_ALT;
+
+            PostMessage(BBhwnd , BB_DESKCLICK , wParam , n);
             break;
 
-        //====================
+            //====================
 
         case WM_PAINT:
         {
@@ -325,17 +364,18 @@ ST LRESULT CALLBACK Desk_WndProc (HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
             HDC hdc_bmp;
             HGDIOBJ other;
 
-            hdc_scrn = BeginPaint(hwnd, &ps);
+            hdc_scrn = BeginPaint(hwnd , &ps);
             if (Root.bmp) {
                 hdc_bmp = CreateCompatibleDC(hdc_scrn);
-                other = SelectObject(hdc_bmp, Root.bmp);
-                BitBltRect(hdc_scrn, hdc_bmp, &ps.rcPaint);
-                SelectObject(hdc_bmp, other);
+                other = SelectObject(hdc_bmp , Root.bmp);
+                BitBltRect(hdc_scrn , hdc_bmp , &ps.rcPaint);
+                SelectObject(hdc_bmp , other);
                 DeleteDC(hdc_bmp);
-            } else {
+            }
+            else {
                 PaintDesktop(hdc_scrn);
             }
-            EndPaint(hwnd, &ps);
+            EndPaint(hwnd , &ps);
             break;
         }
 
@@ -343,45 +383,46 @@ ST LRESULT CALLBACK Desk_WndProc (HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
         case WM_ERASEBKGND:
             return TRUE;
 
-        //====================
+            //====================
         case BB_DRAGTODESKTOP:
-            return get_drop_command((const char *)lParam, wParam);
+            return get_drop_command((const char*)lParam , wParam);
 
         case BB_REDRAWGUI:
             if (wParam & BBRG_DESK)
                 Desk_new_background("style");
             break;
 
-        //====================
+            //====================
         default:
-            return DefWindowProc(hwnd, uMsg, wParam, lParam);
+            return DefWindowProc(hwnd , uMsg , wParam , lParam);
     }
     return 0;
 }
 
-//===========================================================================
+
 // figure out whether we want the file (images and styles, that is)
 
-static int get_drop_command(const char *filename, int flags)
+static int get_drop_command(const char* filename , int flags)
 {
-    const char *e;
+    const char* e;
 
     e = file_extension(filename);
-    if (*e && stristr(".bmp.gif.png.jpg.jpeg", e)) {
-        unsigned modkey = get_modkeys() & (MK_ALT|MK_SHIFT|MK_CONTROL);
-        const char *mode;
+    if (*e && stristr(".bmp.png.jpg.jpeg" , e)) {
+        unsigned modkey = get_modkeys() & (MK_ALT | MK_SHIFT | MK_CONTROL);
+        const char* mode;
         if (0 == modkey)
             mode = "full";
         else
-        if (MK_SHIFT == modkey)
-            mode = "center";
-        else
-        if (MK_CONTROL == modkey)
-            mode = "tile";
-        else
-            return 0;
-        if (0 == (flags & 1))
-            post_command_fmt("@BBCore.rootCommand bsetroot -%s \"%s\"", mode, filename);
+            if (MK_SHIFT == modkey)
+                mode = "center";
+            else
+                if (MK_CONTROL == modkey)
+                    mode = "tile";
+                else
+                    return 0;
+
+        post_command_fmt("@BBCore.rootCommand bsetroot -%s \"%s\"" , mode , filename);
+
         return 1;
     }
 
@@ -389,36 +430,36 @@ static int get_drop_command(const char *filename, int flags)
     // the file's contents on DragEnter
     if (flags & 2) {
         if (0 == (flags & 1))
-            post_command_fmt(MM_STYLE_BROAM, filename);
+            post_command_fmt(MM_STYLE_BROAM , filename);
         return 1;
     }
 
     return 0;
 }
 
-//===========================================================================
+
 #endif //ndef BBTINY
-//===========================================================================
+
 // get/set/reset a custom rootcommand (e.g. with dropped images on desktop)
 
-const char * Desk_extended_rootCommand(const char *p)
+const char* Desk_extended_rootCommand(const char* p)
 {
-    const char rc_key [] = "blackbox.background.rootCommand";
-    const char *extrc = extensionsrcPath(NULL);
+    const char rc_key[] = "blackbox.background.rootCommand";
+    const char* extrc = extensionsrcPath(NULL);
     if (p)
-        WriteString(extrc, rc_key, p);
+        WriteString(extrc , rc_key , p);
     else
-        p = ReadString(extrc, rc_key, NULL);
+        p = ReadString(extrc , rc_key , NULL);
     return p;
 }
 
-//===========================================================================
+
 // read desktop mouse click events from extensions.rc and execute
 
 static const unsigned char mk_mods[] =
 { MK_ALT, MK_SHIFT, MK_CONTROL, MK_LBUTTON, MK_RBUTTON, MK_MBUTTON };
 static const char modkey_strings[][6] =
-{ "Alt", "Shift", "Ctrl", "Left", "Right", "Mid"  };
+{ "Alt", "Shift", "Ctrl", "Left", "Right", "Mid" };
 static const unsigned short vk_codes[] =
 { VK_MENU, VK_SHIFT, VK_CONTROL, VK_LBUTTON, VK_RBUTTON, VK_MBUTTON };
 static const char button_strings[][7] =
@@ -439,7 +480,7 @@ bool Desk_mousebutton_event(int button)
     char rc_key[100];
     unsigned modkey;
     int i;
-    const char *broam;
+    const char* broam;
 
     if (button < 1 || button > array_count(button_strings))
         return false;
@@ -448,13 +489,13 @@ bool Desk_mousebutton_event(int button)
     if (button == 1 && 0 == modkey)
         return false;
 
-    strcpy(rc_key, "blackbox.desktop.");
+    strcpy(rc_key , "blackbox.desktop.");
     for (i = 0; i < array_count(mk_mods); ++i)
         if (mk_mods[i] & modkey)
-            strcat(rc_key, modkey_strings[i]);
-    sprintf(strchr(rc_key, 0), "%sClick", button_strings[button-1]);
+            strcat(rc_key , modkey_strings[i]);
+    sprintf(strchr(rc_key , 0) , "%sClick" , button_strings[button - 1]);
 
-    broam = ReadString(extensionsrcPath(NULL), rc_key, NULL);
+    broam = ReadString(extensionsrcPath(NULL) , rc_key , NULL);
     // dbg_printf("%s - %s", rc_key, broam);
 
     if (broam) {
@@ -463,34 +504,34 @@ bool Desk_mousebutton_event(int button)
     }
 
     if (2 == button && 0 == modkey) {
-        PostMessage(BBhwnd, BB_MENU, BB_MENU_ROOT, 0);
+        PostMessage(BBhwnd , BB_MENU , BB_MENU_ROOT , 0);
         return true;
     }
     if ((3 == button && 0 == modkey) || (2 == button && MK_SHIFT == modkey)) {
-        PostMessage(BBhwnd, BB_MENU, BB_MENU_TASKS, 0);
+        PostMessage(BBhwnd , BB_MENU , BB_MENU_TASKS , 0);
         return true;
     }
     return false;
 
 }
 
-//===========================================================================
+
 // Show / Hide Explorer parts when running on top of the native shell
 
-ST struct hwnd_list *basebarlist;
+ST struct hwnd_list* basebarlist;
 
-ST void hidewnd (HWND hwnd)
+ST void hidewnd(HWND hwnd)
 {
-    if (hwnd && ShowWindow(hwnd, SW_HIDE))
-        cons_node(&basebarlist, new_node(hwnd));
+    if (hwnd && ShowWindow(hwnd , SW_HIDE))
+        cons_node(&basebarlist , new_node(hwnd));
 }
 
-ST BOOL CALLBACK HideBaseBars(HWND hwnd, LPARAM lParam)
+ST BOOL CALLBACK HideBaseBars(HWND hwnd , LPARAM lParam)
 {
     char temp[32];
-    if (GetClassName(hwnd, temp, sizeof temp)
-     && (0 == strcmp(temp, "BaseBar")
-      || 0 == strcmp(temp, "Button")
+    if (GetClassName(hwnd , temp , sizeof temp)
+        && (0 == strcmp(temp , "BaseBar")
+        || 0 == strcmp(temp , "Button")
         ))
         hidewnd(hwnd);
     return TRUE;
@@ -499,35 +540,57 @@ ST BOOL CALLBACK HideBaseBars(HWND hwnd, LPARAM lParam)
 void HideExplorer(void)
 {
     HWND hw;
-    hw = FindWindow("Progman", "Program Manager");
+    hw = FindWindow("Progman" , "Program Manager");
     if (hw) {
         if (Settings_hideExplorer) {
             hidewnd(hw);
-        } else {
+        }
+        else {
             MakeSticky(hw);
         }
     }
 
-    hw = FindWindow("Shell_TrayWnd", NULL);
+    hw = FindWindow("Shell_TrayWnd" , NULL);
     if (hw) {
         if (Settings_hideExplorerTray) {
             hidewnd(hw);
-            EnumWindows(HideBaseBars, 0);
-        } else {
+            EnumWindows(HideBaseBars , 0);
+        }
+        else {
             MakeSticky(hw);
         }
     }
+}
+
+// added by clodio,  11 may 2021
+void restartExplorerWindow()
+{
+    DWORD dwPID;
+    HWND hSysTray = ::FindWindow(TEXT("Shell_TrayWnd") , NULL);
+    GetWindowThreadProcessId(hSysTray , &dwPID);
+    HANDLE explorerHandle = OpenProcess(PROCESS_TERMINATE , FALSE , dwPID);
+
+    if (explorerHandle) {
+        TerminateProcess(explorerHandle , 0);
+    }
+    BBExecute_string("explorer.exe" , RUN_SHOWERRORS);
 }
 
 void ShowExplorer(void)
 {
-    struct hwnd_list *p;
-    dolist (p, basebarlist)
-        ShowWindow(p->hwnd, SW_SHOW);
+    struct hwnd_list* p;
+    dolist(p , basebarlist)
+        ShowWindow(p->hwnd , SW_SHOW);
+
+    // restarts the explorer if basebarlist has nothing - clodio
+    if (g_underExplorer) {
+        restartExplorerWindow();
+    }
+
     freeall(&basebarlist);
 }
 
-//===========================================================================
+
 // The COM object responsible for drag'n dropping on desktop
 
 #ifndef BBTINY
@@ -539,15 +602,15 @@ public:
     virtual ~DeskDropTarget();
 
     // IUnknown methods
-    STDMETHOD(QueryInterface)(REFIID iid, void** ppvObject);
-    STDMETHOD_(ULONG, AddRef)();
-    STDMETHOD_(ULONG, Release)();
+    STDMETHOD(QueryInterface)(REFIID iid , void** ppvObject);
+    STDMETHOD_(ULONG , AddRef)();
+    STDMETHOD_(ULONG , Release)();
 
 private:
     // IDropTarget methods
-    STDMETHOD(DragEnter)(LPDATAOBJECT pDataObject, DWORD grfKeyState, POINTL pt, LPDWORD pdwEffect);
-    STDMETHOD(DragOver)(DWORD grfKeyState, POINTL pt, LPDWORD pdwEffect);
-    STDMETHOD(Drop)(LPDATAOBJECT pDataObject, DWORD grfKeyState, POINTL pt, LPDWORD pdwEffect);
+    STDMETHOD(DragEnter)(LPDATAOBJECT pDataObject , DWORD grfKeyState , POINTL pt , LPDWORD pdwEffect);
+    STDMETHOD(DragOver)(DWORD grfKeyState , POINTL pt , LPDWORD pdwEffect);
+    STDMETHOD(Drop)(LPDATAOBJECT pDataObject , DWORD grfKeyState , POINTL pt , LPDWORD pdwEffect);
     STDMETHOD(DragLeave)();
 
     DWORD drop_check(int flag);
@@ -566,10 +629,9 @@ DeskDropTarget::~DeskDropTarget()
 {
 }
 
-STDMETHODIMP DeskDropTarget::QueryInterface(REFIID iid, void** ppvObject)
+STDMETHODIMP DeskDropTarget::QueryInterface(REFIID iid , void** ppvObject)
 {
-    if (IsEqualIID(iid, IID_IUnknown) || IsEqualIID(iid, IID_IDropTarget))
-    {
+    if (IsEqualIID(iid , IID_IUnknown) || IsEqualIID(iid , IID_IDropTarget)) {
         *ppvObject = this;
         AddRef();
         return S_OK;
@@ -584,32 +646,30 @@ STDMETHODIMP_(ULONG) DeskDropTarget::AddRef()
 }
 
 STDMETHODIMP_(ULONG) DeskDropTarget::Release()
-{ 
+{
     int r;
     if (0 == (r = --m_dwRef))
         delete this;
-    return r; 
+    return r;
 }
 
-STDMETHODIMP DeskDropTarget::DragEnter(LPDATAOBJECT pDataObject,
-    DWORD grfKeyState, POINTL pt, LPDWORD pdwEffect)
+STDMETHODIMP DeskDropTarget::DragEnter(LPDATAOBJECT pDataObject ,
+                                       DWORD grfKeyState , POINTL pt , LPDWORD pdwEffect)
 {
     AddRef();
     m_filename[0] = 0;
-    if (pDataObject)
-    {
+    if (pDataObject) {
         FORMATETC fmte;
-        fmte.cfFormat   = CF_HDROP;
-        fmte.ptd        = NULL;
-        fmte.dwAspect   = DVASPECT_CONTENT;  
-        fmte.lindex     = -1;
-        fmte.tymed      = TYMED_HGLOBAL;
+        fmte.cfFormat = CF_HDROP;
+        fmte.ptd = NULL;
+        fmte.dwAspect = DVASPECT_CONTENT;
+        fmte.lindex = -1;
+        fmte.tymed = TYMED_HGLOBAL;
 
         STGMEDIUM medium;
-        if (SUCCEEDED(pDataObject->GetData(&fmte, &medium)))
-        {
+        if (SUCCEEDED(pDataObject->GetData(&fmte , &medium))) {
             HDROP hDrop = (HDROP)medium.hGlobal;
-            DragQueryFile(hDrop, 0, m_filename, sizeof(m_filename));
+            DragQueryFile(hDrop , 0 , m_filename , sizeof(m_filename));
             DragFinish(hDrop);
             m_flags = is_stylefile(m_filename) ? 2 : 0;
         }
@@ -621,20 +681,20 @@ STDMETHODIMP DeskDropTarget::DragEnter(LPDATAOBJECT pDataObject,
 DWORD DeskDropTarget::drop_check(int flag)
 {
     if (m_filename[0]
-        && SendMessage(BBhwnd, BB_DRAGTODESKTOP, m_flags|flag, (LPARAM)m_filename))
-        return DROPEFFECT_LINK|DROPEFFECT_COPY;
+        && SendMessage(BBhwnd , BB_DRAGTODESKTOP , m_flags | flag , (LPARAM)m_filename))
+        return DROPEFFECT_LINK | DROPEFFECT_COPY;
     else
         return DROPEFFECT_NONE;
 }
 
-STDMETHODIMP DeskDropTarget::DragOver(DWORD grfKeyState, POINTL pt, LPDWORD pdwEffect)
+STDMETHODIMP DeskDropTarget::DragOver(DWORD grfKeyState , POINTL pt , LPDWORD pdwEffect)
 {
     *pdwEffect = drop_check(1);
     return S_OK;
 }
 
-STDMETHODIMP DeskDropTarget::Drop(LPDATAOBJECT pDataObject,
-    DWORD grfKeyState, POINTL pt, LPDWORD pdwEffect)
+STDMETHODIMP DeskDropTarget::Drop(LPDATAOBJECT pDataObject ,
+                                  DWORD grfKeyState , POINTL pt , LPDWORD pdwEffect)
 {
     *pdwEffect = drop_check(0);
     return DragLeave();
@@ -646,18 +706,18 @@ STDMETHODIMP DeskDropTarget::DragLeave()
     return S_OK;
 }
 
-//===========================================================================
+
 static void init_DeskDropTarget(HWND hwnd)
 {
     m_DeskDropTarget = new DeskDropTarget();
-    RegisterDragDrop(hwnd, m_DeskDropTarget);
+    RegisterDragDrop(hwnd , m_DeskDropTarget);
 }
 
-static void exit_DeskDropTarget (HWND hwnd)
+static void exit_DeskDropTarget(HWND hwnd)
 {
     RevokeDragDrop(hwnd);
     m_DeskDropTarget->Release();
 }
 
-//===========================================================================
+
 #endif //ndef BBTINY

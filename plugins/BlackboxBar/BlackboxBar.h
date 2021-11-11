@@ -6,9 +6,8 @@
 #include "bblib.h"
 #include "bbPlugin.h"
 #include "drawico.h"
-#ifndef NO_TIPS
-#	include "tooltips.h"
-#endif
+#include "tooltips.h"
+
 #include <shellapi.h>
 #include <shlobj.h>
 #include <time.h>
@@ -20,9 +19,6 @@
 #define MY_BROAM "@BlackBoxBar"
 
 #include "BuffBmp.h"
-#ifndef NO_DROP
-#	include "TinyDropTarg.h"
-#endif
 
 // flags for invalidation
 #define UPD_DRAW 0x180
@@ -68,7 +64,6 @@ struct barinfo : plugin_info {
 	struct pmenu* cfg_menu;
 	class BuffBmp* pBuff;
 	class LeanBar* pLeanBar;
-	class TinyDropTarget* m_TinyDropTarget;
 	struct tasklist* taskList;
 	struct ToolbarInfo* TBInfo;
 
@@ -181,8 +176,8 @@ struct barinfo : plugin_info {
 	void show_menu(bool);
 	void desktop_margin_fn();
 	void pos_changed();
-	void set_tbinfo();
-	void reset_tbinfo();
+	/*void set_tbinfo();
+	void reset_tbinfo();*/
 
 	void set_screen_info();
 	void set_clock_string();

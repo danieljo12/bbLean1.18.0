@@ -66,23 +66,16 @@ enum BARITEMS {
 	M_TRAYLIST
 };
 
-struct itemlist {
-	struct itemlist* next;
-	class baritem* item;
-};
 
 
 
-//===========================================================================
-
-//===========================================================================
 // the base class for all items on the bar:
 
 class baritem {
 public:
 	struct barinfo* m_bar;     // the pointer to the plugin_info structure
+	RECT itemRect;            // the rectangle of the item
 	int m_type;         // the item's M_XXX ID
-	RECT mr;            // the rectangle of the item
 	bool m_active;      // pressed state
 	int m_margin;       //
 	bool mouse_in;
@@ -95,7 +88,6 @@ public:
 
 	//-----------------------------
 	// asign the rectangle, advance the x-pointer, returns true if changed
-
 	bool set_location(int* px, int y, int w, int h, int m);
 
 	//-----------------------------
@@ -128,9 +120,12 @@ public:
 
 };
 
-//===========================================================================
+struct itemlist {
+	struct itemlist* next;
+	struct baritem* item;
+};
 
-//===========================================================================
+
 // a list class, for tasks and tray-icons, also for the entire bar
 
 class baritemlist : public baritem {
@@ -143,28 +138,28 @@ public:
 	//-----------------------------
 	virtual ~baritemlist();
 
-	//-----------------------------
+	// adds a bar item to the list.
 	void add(class baritem* entry);
 
-	//-----------------------------
+	// clears the list.
 	void clear(void);
 
-	//-----------------------------
-	void draw();
+	// calls the draw method of all bar items.
+	void draw(); // NEVERUSED override
+
+	// checks every bar item to see if it was the one which the user clicked on.
+	virtual void mouse_event(int mx, int my, int message, unsigned flags); // NEVERUSED override
 
 	//-----------------------------
-	virtual void mouse_event(int mx, int my, int message, unsigned flags);
+	void settip(); // NEVERUSED override
 
 	//-----------------------------
-	void settip();
-
-	//-----------------------------
-	void invalidate(int flag);
+	void invalidate(int flag); // NEVERUSED override
 };
 
-//===========================================================================
 
-//===========================================================================
+
+
 // one task entry
 
 class taskentry : public baritem {
@@ -182,7 +177,7 @@ public:
 	~taskentry();
 
 	//-----------------------------
-	void draw();
+	void draw(); // NEVERUSED override
 
 	//-----------------------------
 	// Icon only mode
@@ -192,18 +187,18 @@ public:
 	// Text (with icon) mode
 	void draw_text(struct tasklist* tl, bool lit, StyleItem* pSI);
 
-#ifndef NO_TIPS
-	void settip();
-#endif
+
+	void settip(); // NEVERUSED override
+
 
 	//-----------------------------
 
-	void mouse_event(int mx, int my, int message, unsigned flags);
+	void mouse_event(int mx, int my, int message, unsigned flags); //NEVERUSED override
 };
 
-//===========================================================================
 
-//===========================================================================
+
+
 // one tray-icon
 
 class trayentry : public baritem {
@@ -217,23 +212,22 @@ public:
 	~trayentry();
 
 	//-----------------------------
-	void invalidate(int flag);
+	void invalidate(int flag); // NEVERUSED override
 
 	//-----------------------------
-	void draw();
+	void draw(); // NEVERUSED override
+
+
+	void settip(); // NEVERUSED override
+
 
 	//-----------------------------
-#ifndef NO_TIPS
-	void settip();
-#endif
-
-	//-----------------------------
-	void mouse_event(int mx, int my, int message, unsigned flags);
+	void mouse_event(int mx, int my, int message, unsigned flags); // NEVERUSED override
 };
 
-//===========================================================================
 
-//===========================================================================
+
+
 // common base class for clock, workspace-label, window-label
 
 class barlabel : public baritem {
@@ -245,12 +239,11 @@ public:
 	barlabel(int type, barinfo* bi, WCHAR const* text, int s);
 
 	//-----------------------------
-	void draw();
+	void draw(); // NEVERUSED override
 };
 
-//===========================================================================
 
-//===========================================================================
+
 // workspace-label
 
 class workspace_label : public barlabel {
@@ -258,13 +251,12 @@ public:
 	workspace_label(barinfo* bi);
 
 	//-----------------------------
-	void mouse_event(int mx, int my, int message, unsigned flags);
+	void mouse_event(int mx, int my, int message, unsigned flags); // NEVERUSED override
 
 };
 
-//===========================================================================
 
-//===========================================================================
+
 // window-label
 
 class window_label : public barlabel {
@@ -272,23 +264,22 @@ public:
 	window_label(barinfo* bi);
 };
 
-//===========================================================================
 
-//===========================================================================
+
 // clock-label
 
 class clock_displ : public barlabel {
 public:
 	clock_displ(barinfo* bi);
 
-	void settip();
+	void settip(); // NEVERUSED override
 	//-----------------------------
-	void mouse_event(int mx, int my, int message, unsigned flags);
+	void mouse_event(int mx, int my, int message, unsigned flags); // NEVERUSED override
 };
 
-//===========================================================================
 
-//===========================================================================
+
+
 // fill in a space or new line
 
 class spacer : public baritem {
@@ -296,9 +287,9 @@ public:
 	spacer(int typ, barinfo* bi);
 };
 
-//===========================================================================
 
-//===========================================================================
+
+
 // buttons
 
 class bar_button : public baritem {
@@ -309,20 +300,19 @@ public:
 	bar_button(int m, barinfo* bi);
 
 	//-----------------------------
-	void draw();
+	void draw(); // NEVERUSED override
 
 	//-----------------------------
 	// for the buttons, the mouse is captured on button-down
-	void mouse_event(int mx, int my, int message, unsigned flags);
+	void mouse_event(int mx, int my, int message, unsigned flags); // NEVERUSED override
 
-#if 0//ndef NO_TIPS
-	void settip();
-#endif
+	void settip(); // NEVERUSED override
+
 };
 
-//===========================================================================
 
-//===========================================================================
+
+
 // task zone
 
 class taskitemlist : public baritemlist {
@@ -335,7 +325,7 @@ public:
 	// This one assigns the individual locations and sizes for
 	// the items in the task-list
 
-	bool calc_sizes(void);
+	bool calc_sizes(void); // NEVERUSED override
 
 	//-----------------------------
 	void mouse_event(int mx, int my, int message, unsigned flags);
@@ -347,9 +337,9 @@ public:
 	*/
 };
 
-//===========================================================================
 
-//===========================================================================
+
+
 // tray zone
 
 class trayitemlist : public baritemlist {
@@ -372,9 +362,9 @@ public:
 	*/
 };
 
-//===========================================================================
 
-//===========================================================================
+
+
 // LeanBar - the main class
 
 class LeanBar : public baritemlist {
@@ -386,9 +376,9 @@ public:
 	//-----------------------------
 	LeanBar(barinfo* bi);
 
-#ifndef NO_TIPS
+
 	void settip();
-#endif
+
 
 	//-----------------------------
 	void invalidate(int flag);

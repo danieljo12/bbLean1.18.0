@@ -47,9 +47,9 @@ const char szInfoLink[] = "http://bb4win.sourceforge.net/bblean";
 const char szInfoEmail[] = "grischka@users.sourceforge.net";
 const char szCopyright[] = "2003-2009 grischka";
 
-//===========================================================================
 
-HWND BBhwnd=NULL;
+
+HWND BBhwnd = NULL;
 int currentScreen = 0;
 WCHAR screenName[256];
 
@@ -73,10 +73,10 @@ void EnumTasks(TASKENUMPROC lpEnumFunc, LPARAM lParam)
 			break;
 }
 
-//===========================================================================
 
 
-//===========================================================================
+
+
 
 struct config {
 	const char* str;
@@ -110,12 +110,8 @@ barinfo::~barinfo()
 {
 	DelTasklist();
 	DelTraylist();
-#ifndef NO_TIPS
+
 	ClearToolTips(hwnd);
-#endif
-#ifndef NO_DROP
-	exit_drop_targ(m_TinyDropTarget);
-#endif
 	BBP_Exit_Plugin(this);
 	delete[](char*)cfg_list;
 	delete[](char*)cfg_menu;
@@ -255,30 +251,41 @@ void barinfo::NewTraylist()
 
 	if (NULL == trayList)
 		trayLoadHidden();
-
 	// loop through icons, add new ones as needed, mark all as present
+
 	for (n = 0, ts = GetTraySize(); n < ts; ++n)
 	{
 		systemTray* icon = GetTrayIcon(n);
 		if (NULL == icon)
 			continue;
 
+		bool found = false;
 		dolist(tn, trayList)
 			if (tn->hWnd == icon->hWnd && tn->uID == icon->uID)
-				goto found; // already there
+			{
+				found = true;
+				break;
+			}
 
-		tn = new trayNode;
-		tn->hWnd = icon->hWnd;
-		tn->uID = icon->uID;
-		tn->hidden = false;
-		tn->tip_checked = false;
-		GetClassNameA(tn->hWnd, tn->class_name, sizeof tn->class_name);
+		if (!found)
+		{
+			tn = new trayNode;
+			tn->hWnd = icon->hWnd;
+			tn->uID = icon->uID;
+			tn->hidden = false;
+			tn->tip_checked = false;
+			GetClassNameA(tn->hWnd, tn->class_name, sizeof tn->class_name);
 
-		// add a new one
-		cons_node(&trayList, tn);
-		found:
-		tn->mark = true; // do not remove this below
-		tn->index = n; // the index for 'GetTrayIcon(int index);'
+			// add a new one
+			cons_node(&trayList, tn);
+			tn->mark = true; // do not remove this below
+			tn->index = n; // the index for 'GetTrayIcon(int index);'
+		}
+		else
+		{
+			tn->mark = true; // do not remove this below
+			tn->index = n; // the index for 'GetTrayIcon(int index);'
+		}
 	}
 
 	skip:
@@ -461,7 +468,7 @@ void barinfo::trayMenu(bool pop)
 
 
 
-//===========================================================================
+
 // configuration and menu items
 
 //#define TESTF
@@ -556,7 +563,7 @@ void barinfo::make_cfg()
 	cfg_menu = new pmenu[array_count(m)], memcpy(cfg_menu, m, sizeof m);
 }
 
-//===========================================================================
+
 
 int barinfo::GetTextWidth(WCHAR const* cp, StyleItem* si)
 {
@@ -586,7 +593,7 @@ void barinfo::set_screen_info(void)
 	}
 }
 
-//===========================================================================
+
 void barinfo::set_clock_string(void)
 {
 	time_t systemTime;
@@ -653,7 +660,7 @@ void barinfo::set_clock_string(void)
 		NULL);
 }
 
-//===========================================================================
+
 void barinfo::desktop_margin_fn(void)
 {
 	int margin = 0, pos = 0;
@@ -678,7 +685,7 @@ void barinfo::desktop_margin_fn(void)
 	SetDesktopMargin(this->hwnd, pos, margin);
 }
 
-//==========================================================================={
+
 
 void barinfo::update(int flag)
 {
@@ -702,7 +709,7 @@ void barinfo::update_windowlabel(void)
 	getWindowText(hwnd, windowlabel, sizeof(windowlabel) / sizeof(*windowlabel));
 }
 
-//===========================================================================
+
 
 bool barinfo::check_fullscreen_window(void)
 {
@@ -750,7 +757,7 @@ bool barinfo::check_fullscreen_window(void)
 	return covers;
 }
 
-//===========================================================================
+
 LRESULT barinfo::wnd_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam, LRESULT* ret)
 {
 	static int msgs[] =
@@ -830,7 +837,7 @@ LRESULT barinfo::wnd_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam,
 
 			GetRCSettings();
 
-			this->set_tbinfo();
+			//this->set_tbinfo();
 			GetStyleSettings();
 			set_screen_info();
 			this->NewTasklist();
@@ -850,7 +857,7 @@ LRESULT barinfo::wnd_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam,
 			pBuff = 0;
 			if (hFont)
 				DeleteObject(hFont), hFont = NULL;
-			this->reset_tbinfo();
+			//this->reset_tbinfo();
 			if (I)
 			{
 				delete I;
@@ -885,7 +892,7 @@ LRESULT barinfo::wnd_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam,
 			this->NewTasklist();
 			this->NewTraylist();
 			this->update_windowlabel();
-			this->set_tbinfo();
+			//this->set_tbinfo();
 			this->update(UPD_NEW);
 			break;
 
@@ -985,13 +992,6 @@ LRESULT barinfo::wnd_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam,
 				break;
 			}
 
-#ifndef NO_DROP
-			if (TASK_RISE_TIMER == wParam)
-			{
-				handle_task_timer(m_TinyDropTarget);
-				break;
-			}
-#endif
 			KillTimer(hwnd, wParam);
 
 			if (LABEL_TIMER == wParam)
@@ -1057,22 +1057,23 @@ LRESULT barinfo::wnd_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam,
 				BBP_set_place(this, old_place);
 				break;
 			}
-			goto mouse;
-
-		case WM_RBUTTONDOWN:
+			// mouse;
+			//break through easier and clearer
 		case WM_RBUTTONUP:
 		case WM_RBUTTONDBLCLK:
 		case WM_MOUSEWHEEL:
 		case WM_MOUSELEAVE:
 		case WM_MOUSEMOVE:
-		case WM_LBUTTONDOWN:
 		case WM_LBUTTONUP:
 		case WM_MBUTTONDOWN:
 		case WM_MBUTTONUP:
 		case WM_MBUTTONDBLCLK:
-			mouse:
+		case WM_RBUTTONDOWN:
 			if (0x8000 & GetAsyncKeyState(VK_MENU))
 				wParam |= MK_ALT;
+			this->pLeanBar->mouse_event((short)LOWORD(lParam), (short)HIWORD(lParam), message, wParam);
+			break;
+		case WM_LBUTTONDOWN:
 			this->pLeanBar->mouse_event((short)LOWORD(lParam), (short)HIWORD(lParam), message, wParam);
 			break;
 
@@ -1094,9 +1095,9 @@ LRESULT barinfo::wnd_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam,
 	return 0;
 }
 
-//===========================================================================
+
 // Function: GetRCSettings
-//===========================================================================
+
 void barinfo::GetRCSettings()
 {
 	this->place = POS_BottomCenter; /* default placement */
@@ -1182,9 +1183,9 @@ void barinfo::GetRCSettings()
 	has_tray = NULL != strchr(item_string, M_TRAY);
 }
 
-//===========================================================================
+
 // Function: WriteRCSettings
-//===========================================================================
+
 void barinfo::WriteRCSettings()
 {
 	struct config* p = cfg_list;
@@ -1205,9 +1206,9 @@ void barinfo::WriteRCSettings()
 	} while ((++p)->str);
 }
 
-//===========================================================================
+
 // Function: GetStyleSettings
-//===========================================================================
+
 
 
 void barinfo::GetStyleSettings()
@@ -1338,7 +1339,7 @@ void barinfo::GetStyleSettings()
 	//dbg_printf("Monitors: %d %d", GetSystemMetrics(SM_CMONITORS), on_multimon);
 }
 
-//===========================================================================
+
 void barinfo::process_broam(const char* temp, int f)
 {
 	if (f)
@@ -1401,7 +1402,7 @@ void barinfo::process_broam(const char* temp, int f)
 	}
 }
 
-//===========================================================================
+
 // Function: show_menu
 // Purpose: ...
 // In: void
@@ -1461,14 +1462,13 @@ void barinfo::show_menu(bool pop)
 	n_menuitem_nop(myMenu, NULL);
 	n_menuitem_cmd(myMenu, "Edit Workspace Names", "@BBCore.EditWorkspaceNames");
 	n_menuitem_cmd(myMenu, "Edit Settings", "EditRc");
-	n_menuitem_cmd(myMenu, "View Readme", "Readme");
 	n_menuitem_cmd(myMenu, "About", "About");
 	n_showmenu(this, myMenu, pop, 0);
 }
 
-//===========================================================================
 
-//===========================================================================
+
+
 void barinfo::pos_changed(void)
 {
 	POINT pt;
@@ -1511,32 +1511,32 @@ void barinfo::pos_changed(void)
 	}
 }
 
-void barinfo::set_tbinfo(void)
-{
-	if (this->inSlit)
-	{
-		reset_tbinfo();
-		return;
-	}
+//void barinfo::set_tbinfo(void)
+//{
+//	if (this->inSlit)
+//	{
+//		reset_tbinfo();
+//		return;
+//	}
+//
+//	ToolbarInfo* TBInfo = GetToolbarInfo();
+//	if (TBInfo && NULL == TBInfo->hwnd)
+//		(this->TBInfo = TBInfo)->hwnd = this->hwnd;
+//}
+//
+//void barinfo::reset_tbinfo(void)
+//{
+//	if (TBInfo)
+//	{
+//		TBInfo->hwnd = NULL;
+//		TBInfo->disabled = TBInfo->hidden = true;
+//		if (TBInfo->bbsb_hwnd)
+//			PostMessage(TBInfo->bbsb_hwnd, BB_TOOLBARUPDATE, 0, 0);
+//		TBInfo = NULL;
+//	}
+//}
 
-	ToolbarInfo* TBInfo = GetToolbarInfo();
-	if (TBInfo && NULL == TBInfo->hwnd)
-		(this->TBInfo = TBInfo)->hwnd = this->hwnd;
-}
 
-void barinfo::reset_tbinfo(void)
-{
-	if (TBInfo)
-	{
-		TBInfo->hwnd = NULL;
-		TBInfo->disabled = TBInfo->hidden = true;
-		if (TBInfo->bbsb_hwnd)
-			PostMessage(TBInfo->bbsb_hwnd, BB_TOOLBARUPDATE, 0, 0);
-		TBInfo = NULL;
-	}
-}
-
-//===========================================================================
 
 DLL_EXPORT int beginPluginEx(HINSTANCE hPluginInstance, HWND hSlit)
 {
@@ -1577,14 +1577,10 @@ DLL_EXPORT int beginPluginEx(HINSTANCE hPluginInstance, HWND hSlit)
 #ifndef NO_DROP
 		OleInitialize(NULL);
 #endif
-#ifndef NO_TIPS
-		InitToolTips(hPluginInstance);
-#endif
-	}
 
-#ifndef NO_DROP
-	PI->m_TinyDropTarget = init_drop_targ(PI->hwnd);
-#endif
+		InitToolTips(hPluginInstance);
+
+	}
 
 	return 0;
 }
@@ -1596,10 +1592,10 @@ DLL_EXPORT void endPlugin(HINSTANCE hPluginInstance)
 
 	if (NULL == g_PI)
 	{
-#ifndef NO_TIPS
+
 		exit_bb_balloon();
 		ExitToolTips();
-#endif
+
 #ifndef NO_DROP
 		OleUninitialize();
 #endif
@@ -1621,4 +1617,4 @@ DLL_EXPORT LPCSTR pluginInfo(int field)
 	}
 }
 
-//===========================================================================
+

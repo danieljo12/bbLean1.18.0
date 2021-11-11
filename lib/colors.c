@@ -21,29 +21,29 @@
 
 #include "bblib.h"
 
-COLORREF rgb (unsigned r, unsigned g, unsigned b)
+COLORREF rgb(unsigned r , unsigned g , unsigned b)
 {
-    return RGB(r,g,b);
+    return RGB(r , g , b);
 }
 
-COLORREF switch_rgb (COLORREF c)
+COLORREF switch_rgb(COLORREF c)
 {
-    return ((c&0x0000ff)<<16) | (c&0x00ff00) | ((c&0xff0000)>>16);
+    return ((c & 0x0000ff) << 16) | (c & 0x00ff00) | ((c & 0xff0000) >> 16);
 }
 
-COLORREF mixcolors(COLORREF c1, COLORREF c2, int f)
+COLORREF mixcolors(COLORREF c1 , COLORREF c2 , int f)
 {
     int n = 255 - f;
     return RGB(
-        (GetRValue(c1)*f+GetRValue(c2)*n)/255,
-        (GetGValue(c1)*f+GetGValue(c2)*n)/255,
-        (GetBValue(c1)*f+GetBValue(c2)*n)/255
-        );
+        (GetRValue(c1) * f + GetRValue(c2) * n) / 255 ,
+        (GetGValue(c1) * f + GetGValue(c2) * n) / 255 ,
+        (GetBValue(c1) * f + GetBValue(c2) * n) / 255
+    );
 }
 
-COLORREF shadecolor(COLORREF c, int f)
+COLORREF shadecolor(COLORREF c , int f)
 {
-    int r,g,b;
+    int r , g , b;
     r = (int)GetRValue(c) + f;
     g = (int)GetGValue(c) + f;
     b = (int)GetBValue(c) + f;
@@ -53,20 +53,20 @@ COLORREF shadecolor(COLORREF c, int f)
     if (r > 255) r = 255;
     if (g > 255) g = 255;
     if (b > 255) b = 255;
-    return RGB(r, g, b);
+    return RGB(r , g , b);
 }
 
 unsigned greyvalue(COLORREF c)
 {
-    unsigned r,g,b;
+    unsigned r , g , b;
     r = GetRValue(c);
     g = GetGValue(c);
     b = GetBValue(c);
-    return (r*79 + g*156 + b*21) / 256;
+    return (r * 79 + g * 156 + b * 21) / 256;
 }
 
 /* X-Windows color names */
-static struct litcolor1 { const char *cname; COLORREF cref; } litcolor1_ary[] = {
+static struct litcolor1 { const char* cname; COLORREF cref; } litcolor1_ary[] = {
     { "aliceblue", RGB(240,248,255) },
     { "beige", RGB(245,245,220) },
     { "black", RGB(0,0,0) },
@@ -125,9 +125,9 @@ static struct litcolor1 { const char *cname; COLORREF cref; } litcolor1_ary[] = 
     { "white", RGB(255,255,255) },
     { "whitesmoke", RGB(245,245,245) },
     { "yellowgreen", RGB(154,205,50) },
-    };
+};
 
-static struct litcolor5 { const char *cname; COLORREF cref[5]; } litcolor5_ary[] = {
+static struct litcolor5 { const char* cname; COLORREF cref[5]; } litcolor5_ary[] = {
 
     { "antiquewhite", { RGB(250,235,215), RGB(255,239,219), RGB(238,223,204), RGB(205,192,176), RGB(139,131,120) }},
     { "aquamarine", { RGB(127,255,212), RGB(127,255,212), RGB(118,238,198), RGB(102,205,170), RGB(69,139,116) }},
@@ -207,7 +207,7 @@ static struct litcolor5 { const char *cname; COLORREF cref[5]; } litcolor5_ary[]
     { "violetred", { RGB(208,32,144), RGB(255,62,150), RGB(238,58,140), RGB(205,50,120), RGB(139,34,82) }},
     { "wheat", { RGB(245,222,179), RGB(255,231,186), RGB(238,216,174), RGB(205,186,150), RGB(139,126,102) }},
     { "yellow", { RGB(255,255,0), RGB(255,255,0), RGB(238,238,0), RGB(205,205,0), RGB(139,139,0) }}
-    };
+};
 
 /* ------------------------------------------------------------------------- */
 /* Function: ParseLiteralColor */
@@ -215,34 +215,33 @@ static struct litcolor5 { const char *cname; COLORREF cref[5]; } litcolor5_ary[]
 
 COLORREF ParseLiteralColor(LPCSTR color)
 {
-    int i, n, s; unsigned l; char *p, c, buf[32]; const char *cp;
+    int i , n , s; unsigned l; char* p , c , buf[32]; const char* cp;
 
     l = (int)strlen(color) + 1;
     if (l > sizeof buf)
         return (COLORREF)-1;
 
-    memcpy(buf, color, l);
+    memcpy(buf , color , l);
     /*strlwr(buf); */
 
-    while (NULL != (p = strchr(buf,' ')))
-        strcpy(p, p+1), --l;
+    while (NULL != (p = strchr(buf , ' ')))
+        strcpy(p , p + 1) , --l;
 
     if (l < 3)
         return (COLORREF)-1;
 
-    if (NULL != (p = strstr(buf,"grey")))
-        p[2]='a';
+    if (NULL != (p = strstr(buf , "grey")))
+        p[2] = 'a';
 
-    if (0 == memcmp(buf,"gray", 4) && (c = buf[4]) >= '0' && c <= '9')
-    {
-        i = iminmax(atoi(buf + 4), 0, 100);
+    if (0 == memcmp(buf , "gray" , 4) && (c = buf[4]) >= '0' && c <= '9') {
+        i = iminmax(atoi(buf + 4) , 0 , 100);
         i = (i * 255 + 50) / 100;
-        return rgb(i,i,i);
+        return rgb(i , i , i);
     }
 
-    i = *(p = &buf[l-2]) - '0';
+    i = *(p = &buf[l - 2]) - '0';
     if (i >= 1 && i <= 4)
-        *p = 0, --l;
+        *p = 0 , --l;
     else
         i = 0;
 
@@ -253,13 +252,13 @@ COLORREF ParseLiteralColor(LPCSTR color)
         do {
             if (*buf <= **(const char**)cp)
                 break;
-        } while (cp += s, --n);
+        } while (cp += s , --n);
         do {
             if (*buf < **(const char**)cp)
                 break;
-            if (0 == memcmp(buf, *(const char**)cp, l))
+            if (0 == memcmp(buf , *(const char**)cp , l))
                 return ((struct litcolor5*)cp)->cref[i];
-        } while (cp += s, --n);
+        } while (cp += s , --n);
 
         if (i || s == sizeof litcolor1_ary[0])
             return (COLORREF)-1;
@@ -279,47 +278,47 @@ COLORREF ReadColorFromString(const char* string)
 {
     char stub[32];
     char rgbstr[32];
-    char *s, *d, *r, c;
+    char* s , * d , * r , c;
     COLORREF cr;
 
     if (NULL == string)
         return CLR_INVALID;
 
-    s = _strlwr(unquote(strcpy_max(stub, string, sizeof stub)));
+    s = _strlwr(unquote(strcpy_max(stub , string , sizeof stub)));
 
     /* check if its an "rgb:12/ee/4c" type string */
-    if (0 == memcmp(s, "rgb:", 4)) {
+    if (0 == memcmp(s , "rgb:" , 4)) {
         int j = 3;
-        s+=4, d = rgbstr, r = s;
+        s += 4 , d = rgbstr , r = s;
         for (;;) {
-            d[0] = *r && '/'!=*r ? *r++ : '0';
-            d[1] = *r && '/'!=*r ? *r++ : d[0];
-            d+=2;
+            d[0] = *r && '/' != *r ? *r++ : '0';
+            d[1] = *r && '/' != *r ? *r++ : d[0];
+            d += 2;
             if (0 == --j)
                 break;
             if ('/' != *r)
                 goto check_hex;
             ++r;
         }
-        *d=0, s = rgbstr;
+        *d = 0 , s = rgbstr;
     }
 check_hex:
     /* check if its a valid hex number */
-    if ('#'==*s)
+    if ('#' == *s)
         s++;
-    for (cr = 0, d = s; (c = *d) != 0; ++d) {
+    for (cr = 0 , d = s; (c = *d) != 0; ++d) {
         cr <<= 4;
         if (c >= '0' && c <= '9')
             cr |= c - '0';
         else
-        if (c >= 'a' && c <= 'f')
-            cr |= c - ('a'-10);
-        else /* must be a literal color name (or is invalid) */
-            return ParseLiteralColor(s);
+            if (c >= 'a' && c <= 'f')
+                cr |= c - ('a' - 10);
+            else /* must be a literal color name (or is invalid) */
+                return ParseLiteralColor(s);
     }
     /* #AB4 short type colors */
     if (d - s == 3)
-        cr = ((cr&0xF00)<<12) | ((cr&0xFF0)<<8) | ((cr&0x0FF)<<4) | (cr&0x00F);
+        cr = ((cr & 0xF00) << 12) | ((cr & 0xFF0) << 8) | ((cr & 0x0FF) << 4) | (cr & 0x00F);
     return switch_rgb(cr);
 }
 

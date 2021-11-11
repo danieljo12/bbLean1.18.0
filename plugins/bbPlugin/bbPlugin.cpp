@@ -35,20 +35,23 @@
 #define _THIS_ PI,
 #endif
 
-//===========================================================================
+
 // API: SetFullTransparency
 // Purpose: Wrapper, win9x compatible
 // In:      HWND, alpha
 // Out:     bool
-//===========================================================================
+
 
 BOOL(WINAPI* qSetLayeredWindowAttributes)(HWND, COLORREF, BYTE, DWORD) = NULL;
 
 bool SetFullTransparency(HWND hwnd, BYTE alpha)
 {
-	HMODULE hUser32 = LoadLibraryA("user32.dll");
+	HMODULE hUser32 = LoadLibraryA("user32.dll"); // NEVERUSED resource leak
 	if (hUser32)
+	{
 		qSetLayeredWindowAttributes = (BOOL(WINAPI*)(HWND, COLORREF, BYTE, DWORD))GetProcAddress(hUser32, "SetLayeredWindowAttributes");
+		FreeLibrary(hUser32);
+	}
 	if (NULL == qSetLayeredWindowAttributes) return false;
 
 	LONG_PTR wStyle1 = GetWindowLongPtr(hwnd, GWL_EXSTYLE);
@@ -70,12 +73,12 @@ bool SetFullTransparency(HWND hwnd, BYTE alpha)
 	return true;
 }
 
-//===========================================================================
+
 // Function: GetOSVersion - bb4win_mod
 // Purpose: Retrieves info about the current OS & bit version
 // In: None
 // Out: int = Returns an integer indicating the OS & bit version
-//===========================================================================
+
 
 OSVERSIONINFO osInfo;
 bool         using_NT;
@@ -152,7 +155,7 @@ int BBP_bbversion(void)
 	return BBVersion;
 }
 
-//===========================================================================
+
 #ifndef BBPLUGIN_NOMENU
 
 struct _menuitem;
@@ -369,7 +372,8 @@ void n_menu::delitems(void)
 
 const char* n_menu::addid(const char* cmd)
 {
-	if ('@' == *cmd) return cmd;
+	if ('@' == *cmd)
+		return cmd;
 	strcpy(this->broam_key[1], cmd);
 	return this->broam_key[0];
 }
@@ -463,12 +467,13 @@ void n_showmenu(plugin_info* PI, n_menu* m, bool popup, int flags, ...)
 	if (flags)
 	{
 		va_list vl;
-		va_start(vl, flags);
+		va_start(vl, flags); // NEVERUSED va_end
 		void* o1, * o2, * o3;
 		o1 = va_arg(vl, void*);
 		o2 = va_arg(vl, void*);
 		o3 = va_arg(vl, void*);
 		MenuOption(pMenu, flags, o1, o2, o3);
+		va_end(vl);
 	}
 	BBP_showmenu(PI, pMenu, popup);
 }
@@ -543,7 +548,7 @@ int get_place(plugin_info* PI)
 	return POS_User;
 }
 
-//===========================================================================
+
 
 void set_place(plugin_info* PI)
 {
@@ -610,7 +615,7 @@ void set_place(plugin_info* PI)
 	PI->ypos = PI->mon_rect.top + iminmax(y, 0, sh - h);
 }
 
-//===========================================================================
+
 
 void BBP_set_window_modes(plugin_info* PI)
 {
@@ -752,7 +757,7 @@ void BBP_set_window_modes(plugin_info* PI)
 	PI->pos_changed(_THIS);
 }
 
-//===========================================================================
+
 const char* placement_strings[] = {
 	"User"          ,
 
@@ -801,7 +806,7 @@ const char* menu_placement_strings[] = {
 	NULL
 };
 
-//===========================================================================
+
 const char* BBP_placement_string(int pos)
 {
 	if (pos < 0 || pos >= POS_LAST) pos = 0;
@@ -813,7 +818,7 @@ int BBP_get_placement(const char* place_string)
 	return get_string_index(place_string, placement_strings);
 }
 
-//===========================================================================
+
 #ifndef BBPLUGIN_NOMENU
 
 static char* make_key(char* buffer, struct plugin_info* PI, const char* rcs)
@@ -934,7 +939,7 @@ void write_rc(struct plugin_info* PI, void* v)
 														BBP_write_string(PI, "orientation", PI->orient_vertical ? "vertical" : "horizontal");
 }
 
-//===========================================================================
+
 
 bool BBP_read_window_modes(struct plugin_info* PI, const char* rcfile)
 {
@@ -996,9 +1001,9 @@ void BBP_write_window_modes(struct plugin_info* PI)
 		write_rc(PI, &PI->orient_vertical);
 }
 
-//===========================================================================
 
-//===========================================================================
+
+
 
 n_menu* BBP_n_placementmenu(struct plugin_info* PI, n_menu* m)
 {
@@ -1062,9 +1067,9 @@ n_menu* BBP_n_windowmenu(plugin_info* PI, n_menu* m)
 	return R;
 }
 
-//===========================================================================
+
 #else // BBPLUGIN_NOMENU
-//===========================================================================
+
 
 #define write_rc(a,b)
 #define BBP_handle_broam(a,b) 0
@@ -1082,7 +1087,7 @@ plugin_info* BBP_create_info(void)
 
 #endif // def BBPLUGIN_NOMENU
 
-//===========================================================================
+
 
 void BBP_set_visible(plugin_info* PI, bool visible)
 {
@@ -1144,7 +1149,7 @@ void BBP_reconfigure(plugin_info* PI)
 	BBP_set_window_modes(PI);
 }
 
-//===========================================================================
+
 bool BBP_get_rcpath(char* rcpath, HINSTANCE hInstance, const char* rcfile)
 {
 	return FindRCFile(rcpath, rcfile, hInstance);
@@ -1164,9 +1169,9 @@ void BBP_edit_file(const char* path)
 	}
 }
 
-//===========================================================================
+
 #ifndef BBPLUGIN_NOMENU
-//===========================================================================
+
 
 bool BBP_broam_bool(struct plugin_info* PI, const char* temp, const char* key, bool* ip)
 {
@@ -1324,14 +1329,6 @@ int BBP_handle_broam(struct plugin_info* PI, const char* temp)
 		BBP_edit_file(PI->rcpath);
 		return BBP_BROAM_HANDLED;
 	}
-
-	if (0 == _stricmp(temp, "readme"))
-	{
-		char temp[MAX_PATH];
-		BBP_edit_file(set_my_path(PI->hInstance, temp, "readme.txt"));
-		return BBP_BROAM_HANDLED;
-	}
-
 	if (!_stricmp(temp, "LoadDocs"))
 	{
 		char docspath[MAX_PATH];
@@ -1354,9 +1351,9 @@ int BBP_handle_broam(struct plugin_info* PI, const char* temp)
 	return 0;
 }
 
-//===========================================================================
+
 #endif // def BBPLUGIN_NOMENU
-//===========================================================================
+
 // autohide
 
 bool check_mouse(HWND hwnd)
@@ -1395,9 +1392,9 @@ void BBP_set_autoHide(plugin_info* PI, bool set)
 	BBP_set_window_modes(PI);
 }
 
-//===========================================================================
 
-//===========================================================================
+
+
 /*
 	// handled messages
 
@@ -1417,7 +1414,7 @@ void BBP_set_autoHide(plugin_info* PI, bool set)
 	WM_CLOSE:   // return 0;
 */
 
-//===========================================================================
+
 
 LRESULT CALLBACK BBP_WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
@@ -1445,12 +1442,12 @@ LRESULT CALLBACK BBP_WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPar
 		case WM_CREATE:
 			SendMessage(GetBBWnd(), BB_REGISTERMESSAGE, (WPARAM)hwnd, (LPARAM)msgs);
 			MakeSticky(hwnd);
-			goto pass_nothing;
+			return PI->wnd_proc(_THIS_ hwnd, message, wParam, lParam, NULL);
 
 		case WM_DESTROY:
 			SendMessage(GetBBWnd(), BB_UNREGISTERMESSAGE, (WPARAM)hwnd, (LPARAM)msgs);
 			RemoveSticky(hwnd);
-			goto pass_nothing;
+			return PI->wnd_proc(_THIS_ hwnd, message, wParam, lParam, NULL);
 
 			// ==========
 		case BB_BROADCAST:
@@ -1462,7 +1459,7 @@ LRESULT CALLBACK BBP_WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPar
 				{
 					PI->toggled_hidden = false;
 					BBP_set_window_modes(PI);
-					goto pass_result;
+					return PI->wnd_proc(_THIS_ hwnd, message, wParam, lParam, &Result);
 				}
 				if (0 == _stricmp(temp, "@BBHidePlugins"))
 				{
@@ -1471,37 +1468,35 @@ LRESULT CALLBACK BBP_WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPar
 						PI->toggled_hidden = true;
 						BBP_set_window_modes(PI);
 					}
-					goto pass_result;
+					return PI->wnd_proc(_THIS_ hwnd, message, wParam, lParam, &Result);
 				}
 
 				if ('@' != *temp++)
-					goto pass_nothing;
+					return PI->wnd_proc(_THIS_ hwnd, message, wParam, lParam, NULL);
 
 				len = PI->broam_key_len;
 				if (len && 0 == _memicmp(temp, PI->broam_key, len) && '.' == temp[len])
 				{
 					f = 0;
 					temp += len + 1;
-					goto do_broam;
+					f |= BBP_handle_broam(PI, temp);
+					PI->process_broam(_THIS_ temp, f);
+					return PI->wnd_proc(_THIS_ hwnd, message, wParam, lParam, &Result);
 				}
 
 				if (PI->next)
-					goto pass_nothing;
+					return PI->wnd_proc(_THIS_ hwnd, message, wParam, lParam, NULL);
 
 				len = PI->broam_key_len_common;
 				if (len && 0 == _memicmp(temp, PI->broam_key, len))
 				{
 					f = BBP_BROAM_COMMON;
 					temp += len;
-					goto do_broam;
+					f |= BBP_handle_broam(PI, temp);
+					PI->process_broam(_THIS_ temp, f);
+					return PI->wnd_proc(_THIS_ hwnd, message, wParam, lParam, &Result);
 				}
-
-				goto pass_nothing;
-
-				do_broam:
-				f |= BBP_handle_broam(PI, temp);
-				PI->process_broam(_THIS_ temp, f);
-				goto pass_result;
+				return PI->wnd_proc(_THIS_ hwnd, message, wParam, lParam, NULL);
 			}
 
 			// ==========
@@ -1513,7 +1508,7 @@ LRESULT CALLBACK BBP_WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPar
 				&& false == PI->inSlit)
 				SetWindowPos(hwnd, HWND_TOP,
 					0, 0, 0, 0, SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE);
-			goto pass_nothing;
+			return PI->wnd_proc(_THIS_ hwnd, message, wParam, lParam, NULL);
 
 			// ==========
 
@@ -1533,7 +1528,7 @@ LRESULT CALLBACK BBP_WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPar
 					if (wp->cy < 12) wp->cy = 12;
 				}
 			}
-			goto pass_nothing;
+			return PI->wnd_proc(_THIS_ hwnd, message, wParam, lParam, NULL);
 
 		case WM_WINDOWPOSCHANGED:
 			if (PI->is_sizing)
@@ -1544,18 +1539,18 @@ LRESULT CALLBACK BBP_WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPar
 				InvalidateRect(hwnd, NULL, FALSE);
 			}
 			SnapWindowToEdge((WINDOWPOS*)lParam, PI->snapWindow, true);
-			goto pass_nothing;
+			return PI->wnd_proc(_THIS_ hwnd, message, wParam, lParam, NULL);
 
 		case WM_ENTERSIZEMOVE:
 			PI->is_moving = true;
-			goto pass_nothing;
+			return PI->wnd_proc(_THIS_ hwnd, message, wParam, lParam, NULL);
 
 		case WM_EXITSIZEMOVE:
 			BBP_exit_moving(PI);
 			BBP_set_autoHide(PI, PI->autoHide);
 			if (PI->inSlit)
 				SendMessage(PI->hSlit, SLIT_UPDATE, 0, (LPARAM)PI->hwnd);
-			goto pass_nothing;
+			return PI->wnd_proc(_THIS_ hwnd, message, wParam, lParam, NULL);
 
 			// ==========
 		case WM_LBUTTONDOWN:
@@ -1565,9 +1560,9 @@ LRESULT CALLBACK BBP_WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPar
 			{
 				// start moving, when control-key is held down
 				PostMessage(hwnd, WM_SYSCOMMAND, 0xf012, 0);
-				goto pass_result;
+				return PI->wnd_proc(_THIS_ hwnd, message, wParam, lParam, &Result);
 			}
-			goto pass_nothing;
+			return PI->wnd_proc(_THIS_ hwnd, message, wParam, lParam, NULL);
 
 		case WM_MOUSEMOVE:
 			if (false == PI->mouse_over)
@@ -1580,25 +1575,17 @@ LRESULT CALLBACK BBP_WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPar
 			{
 				PI->auto_shown = true;
 				BBP_set_window_modes(PI);
-				goto pass_result;
+				return PI->wnd_proc(_THIS_ hwnd, message, wParam, lParam, &Result);
 			}
-
-			goto pass_nothing;
+			return PI->wnd_proc(_THIS_ hwnd, message, wParam, lParam, NULL);
 
 		case WM_TIMER:
 			if (AUTOHIDE_TIMER != wParam)
-				goto pass_nothing;
+				return PI->wnd_proc(_THIS_ hwnd, message, wParam, lParam, NULL);
 
 			if (check_mouse(hwnd))
-				goto pass_result;
-#if 0
-			{
-				POINT pt;
-				GetCursorPos(&pt);
-				if (PI->hMon != GetMonitorRect(&pt, NULL, GETMON_FROM_POINT))
-					goto pass_result;
-			}
-#endif
+				return PI->wnd_proc(_THIS_ hwnd, message, wParam, lParam, &Result);
+
 			if (PI->mouse_over)
 			{
 				POINT pt;
@@ -1611,13 +1598,13 @@ LRESULT CALLBACK BBP_WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPar
 			if (PI->auto_shown)
 			{
 				if (PI->suspend_autohide && BBVERSION_LEAN)
-					goto pass_result;
+					return PI->wnd_proc(_THIS_ hwnd, message, wParam, lParam, &Result);
 				PI->auto_shown = false;
 				BBP_set_window_modes(PI);
 			}
 
 			set_autohide_timer(PI, false);
-			goto pass_result;
+			return PI->wnd_proc(_THIS_ hwnd, message, wParam, lParam, &Result);
 
 
 		case BB_AUTOHIDE:
@@ -1636,26 +1623,24 @@ LRESULT CALLBACK BBP_WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPar
 			}
 
 			set_autohide_timer(PI, true);
-			goto pass_result;
+			return PI->wnd_proc(_THIS_ hwnd, message, wParam, lParam, &Result);
 
 		case WM_CLOSE:
-			goto pass_result;
+			return PI->wnd_proc(_THIS_ hwnd, message, wParam, lParam, &Result);
 
 		case WM_ERASEBKGND:
 			Result = TRUE;
-			goto pass_result;
+			return PI->wnd_proc(_THIS_ hwnd, message, wParam, lParam, &Result);
 
 		default:
-			pass_nothing:
 			return PI->wnd_proc(_THIS_ hwnd, message, wParam, lParam, NULL);
 	}
-	pass_result:
 	return PI->wnd_proc(_THIS_ hwnd, message, wParam, lParam, &Result);
 }
 
-//===========================================================================
+//==================================	=========================================
 
-//===========================================================================
+
 struct class_info {
 	struct class_info* next;
 	char name[48];
@@ -1808,4 +1793,4 @@ int BBP_messagebox(
 	return flags;
 }
 
-//===========================================================================
+

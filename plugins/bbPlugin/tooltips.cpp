@@ -19,8 +19,13 @@
 
  ============================================================================
 */
-#include "tooltips.h"
 
+#include "BBApi.h"
+#include <commctrl.h>
+#include "win0x500.h"
+#include "bblib.h"
+#include "bbPlugin.h"
+#include "DrawText.h"
 
 static HWND hToolTips;
 static bool usingNT;
@@ -84,12 +89,12 @@ void ExitToolTips()
 		*tp = t->next, m_free(t);
 }
 
-//===========================================================================
+
 // Function: SetToolTip
 // Purpose: To assign a ToolTip to an icon in the system tray
 // In:      the position of the icon, the text
 // Out:     void
-//===========================================================================
+
 
 void SetToolTip(HWND hwnd, RECT* tipRect, const char* tipText)
 {
@@ -173,10 +178,10 @@ void SetToolTipW(HWND hwnd, RECT* tipRect, WCHAR const* tipText)
 }
 
 
-//===========================================================================
+
 // Function: ClearToolTips
 // Purpose:  clear all tooltips, which are not longer used
-//===========================================================================
+
 
 void ClearToolTips(HWND hwnd)
 {
@@ -204,9 +209,9 @@ void ClearToolTips(HWND hwnd)
 	}
 }
 
-//===========================================================================
 
-//===========================================================================
+
+
 
 struct plugin_info* g_bbb = 0;
 
@@ -420,7 +425,7 @@ void make_bb_balloon(plugin_info* PI, systemTray* picon, RECT* pr)
 }
 
 
-//===========================================================================
+
 #ifndef TTM_SETTITLEA
 #define TTM_SETTITLEA (WM_USER+32)  // wParam = TTI_*, lParam = char* szTitle
 #endif
@@ -532,7 +537,7 @@ private:
 	}
 };
 
-//===========================================================================
+
 class msg_balloon {
 	systemTray icon;
 

@@ -146,7 +146,7 @@ enum Plugin_Positions {
 	POS_LAST
 };
 
-//===========================================================================
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -201,7 +201,7 @@ extern "C" {
 #define BBP_clear(_struct,_first)\
     memset(&_first, 0, sizeof(*_struct)-((char*)&_struct->_first-(char*)_struct))
 
-	//===========================================================================
+
 	typedef struct n_menu n_menu;
 
 	BBP_DLL_EXPORT n_menu* n_makemenu(const char* title);
@@ -226,7 +226,7 @@ extern "C" {
 	BBP_DLL_EXPORT void n_showmenu(plugin_info* PI, n_menu* m, bool popup, int flags, ...);
 	BBP_DLL_EXPORT void BBP_showmenu(plugin_info* PI, Menu* pMenu, int flags);
 
-	//===========================================================================
+
 
 	BBP_DLL_EXPORT bool check_mouse(HWND hwnd);
 
@@ -241,6 +241,6 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-//===========================================================================
+
 #endif
 

@@ -23,7 +23,7 @@
 
 #include "bbLeanClasses.h"
 
-//===========================================================================
+
 // the base class for all items on the bar:
 
 	//-----------------------------
@@ -33,7 +33,7 @@ baritem::baritem(int type, barinfo* bi)
 	m_type = type;
 	m_active = false;
 	m_margin = 0;
-	mr.left = mr.right = 0;
+	itemRect.left = itemRect.right = 0;
 	mouse_in = false;
 }
 
@@ -51,23 +51,23 @@ bool baritem::set_location(int* px, int y, int w, int h, int m)
 	int x = *px;
 	bool f = false;
 
-	if (mr.left != x)
-		mr.left = x, f = true;
+	if (itemRect.left != x)
+		itemRect.left = x, f = true;
 	x += w;
-	if (mr.right != x)
-		mr.right = x, f = true;
+	if (itemRect.right != x)
+		itemRect.right = x, f = true;
 	*px = x;
 
-	mr.bottom = (mr.top = y) + h;
+	itemRect.bottom = (itemRect.top = y) + h;
 	m_margin = m;
 	return f;
 }
 
 //-----------------------------
-// check the item for mouse-over
+
 int baritem::mouse_over(int mx, int my)
 {
-	RECT r = mr;
+	RECT r = itemRect;
 #if 1
 	// extend clickable area to screen edge
 	int border = styleBorderWidth + styleBevelWidth;
@@ -131,7 +131,7 @@ bool baritem::calc_sizes(void)
 //-----------------------------
 void baritem::invalidate(int flag)
 {
-	InvalidateRect(m_bar->hwnd, &mr, FALSE);
+	InvalidateRect(m_bar->hwnd, &itemRect, FALSE);
 }
 
 //-----------------------------
@@ -181,9 +181,9 @@ bool baritem::check_capture(int mx, int my, int message)
 }
 
 
-//===========================================================================
 
-//===========================================================================
+
+
 // a list class, for tasks and tray-icons, also for the entire bar
 
 	//-----------------------------
@@ -217,7 +217,7 @@ void baritemlist::draw()
 {
 	struct itemlist* p; RECT rtmp;
 	dolist(p, items)
-		if (IntersectRect(&rtmp, &p->item->mr, m_bar->p_rcPaint))
+		if (IntersectRect(&rtmp, &p->item->itemRect, m_bar->p_rcPaint))
 			p->item->draw();
 }
 
@@ -227,9 +227,12 @@ void baritemlist::mouse_event(int mx, int my, int message, unsigned flags)
 	struct itemlist* p, * q;
 
 	dolist(p, items)
+	{
 		if (p->item->mouse_over(mx, my) > 0)
 			break;
 
+
+	}
 	dolist(q, items)
 		if (q->item->mouse_in)
 			break;
@@ -249,6 +252,7 @@ void baritemlist::mouse_event(int mx, int my, int message, unsigned flags)
 	{
 		menuclick(message, flags);
 	}
+
 }
 
 //-----------------------------
@@ -268,9 +272,9 @@ void baritemlist::invalidate(int flag)
 }
 
 
-//===========================================================================
 
-//===========================================================================
+
+
 // one task entry
 
 taskentry::taskentry(int index, barinfo* bi) : baritem(M_TASK, bi)
@@ -320,16 +324,16 @@ void taskentry::draw_icons(struct tasklist* tl, bool lit, StyleItem* pSI)
 	if (lit)
 	{
 		bool bordered = pSI->bordered || pSI->parentRelative;
-		m_bar->pBuff->MakeStyleGradient(m_bar->hdcPaint, &mr, pSI, bordered);
+		m_bar->pBuff->MakeStyleGradient(m_bar->hdcPaint, &itemRect, pSI, bordered);
 	}
 
 	HICON icon = tl->icon;
 	if (NULL == icon)
 		icon = LoadIcon(NULL, IDI_APPLICATION);
 
-	int o = (mr.bottom - mr.top - m_bar->TASK_ICON_SIZE) / 2;
+	int o = (itemRect.bottom - itemRect.top - m_bar->TASK_ICON_SIZE) / 2;
 
-	DrawIconSatnHue(m_bar->hdcPaint, mr.left + o, mr.top + o,
+	DrawIconSatnHue(m_bar->hdcPaint, itemRect.left + o, itemRect.top + o,
 		icon, m_bar->TASK_ICON_SIZE, m_bar->TASK_ICON_SIZE,
 		0, NULL, DI_NORMAL,
 		false == lit, m_bar->saturation, m_bar->hue);
@@ -350,12 +354,12 @@ void taskentry::draw_text(struct tasklist* tl, bool lit, StyleItem* pSI)
 		else
 			bordered = pSI->bordered;
 
-	m_bar->pBuff->MakeStyleGradient(m_bar->hdcPaint, &mr, pSI, bordered);
+	m_bar->pBuff->MakeStyleGradient(m_bar->hdcPaint, &itemRect, pSI, bordered);
 
 	HGDIOBJ oldfont = SelectObject(m_bar->hdcPaint, m_bar->hFont);
 	SetBkMode(m_bar->hdcPaint, TRANSPARENT);
 
-	RECT ThisWin = mr;
+	RECT ThisWin = itemRect;
 	RECT s1 = { 0,0,0,0 };
 	RECT s2 = { 0,0,0,0 };
 	WCHAR buf[8];
@@ -368,7 +372,7 @@ void taskentry::draw_text(struct tasklist* tl, bool lit, StyleItem* pSI)
 	o = f = 0;
 	if ((m_bar->TaskStyle & 2) && NULL != tl->icon)
 	{
-		o = (mr.bottom - mr.top - m_bar->TASK_ICON_SIZE) / 2;
+		o = (itemRect.bottom - itemRect.top - m_bar->TASK_ICON_SIZE) / 2;
 		f = m_bar->TASK_ICON_SIZE + o - m_bar->labelBorder;
 	}
 
@@ -389,24 +393,23 @@ void taskentry::draw_text(struct tasklist* tl, bool lit, StyleItem* pSI)
 
 	if (f)
 	{
-		DrawIconSatnHue(m_bar->hdcPaint, mr.left + o, mr.top + o,
+		DrawIconSatnHue(m_bar->hdcPaint, itemRect.left + o, itemRect.top + o,
 			tl->icon, m_bar->TASK_ICON_SIZE, m_bar->TASK_ICON_SIZE,
 			0, NULL, DI_NORMAL,
 			false == lit, m_bar->saturation, m_bar->hue);
 	}
 }
 
-#ifndef NO_TIPS
 void taskentry::settip()
 {
 	if (m_showtip)
 	{
 		struct tasklist* tl = m_bar->GetTaskPtrEx(m_index);
 		if (tl)
-			SetToolTipW(m_bar->hwnd, &mr, tl->wcaption);
+			SetToolTipW(m_bar->hwnd, &itemRect, tl->wcaption);
 	}
 }
-#endif
+
 
 //-----------------------------
 
@@ -452,7 +455,10 @@ void taskentry::mouse_event(int mx, int my, int message, unsigned flags)
 				&& tl->wkspc == currentScreen
 				&& a2
 				&& (WS_MINIMIZEBOX & GetWindowLongPtr(Window, GWL_STYLE)))
-				goto minimize;
+			{
+				PostMessage(BBhwnd, BB_WINDOWMINIMIZE, 0, (LPARAM)Window);
+				break;
+			}
 
 			if (gesture && m_bar->gesture_lock)
 			{
@@ -491,7 +497,7 @@ void taskentry::mouse_event(int mx, int my, int message, unsigned flags)
 
 			if (m_bar->taskSysmenu)
 			{
-				RECT r = mr;
+				RECT r = itemRect;
 				int b = m_margin - NTaskStyle.borderWidth;
 				r.top -= b;
 				r.bottom += b;
@@ -501,7 +507,6 @@ void taskentry::mouse_event(int mx, int my, int message, unsigned flags)
 				break;
 			}
 
-			minimize:
 			PostMessage(BBhwnd, BB_WINDOWMINIMIZE, 0, (LPARAM)Window);
 			//PostMessage(Window, WM_SYSCOMMAND, SC_MINIMIZE, 0);
 			break;
@@ -548,9 +553,9 @@ void taskentry::mouse_event(int mx, int my, int message, unsigned flags)
 	}
 }
 
-//===========================================================================
 
-//===========================================================================
+
+
 // one tray-icon
 
 trayentry::trayentry(int index, barinfo* bi) : baritem(M_TRAY, bi)
@@ -575,25 +580,23 @@ void trayentry::draw()
 	systemTray* icon = m_bar->GetTrayIconEx(m_index);
 	if (icon)
 	{
-		DrawIconSatnHue(m_bar->hdcPaint, mr.left + 1, mr.top + 1,
+		DrawIconSatnHue(m_bar->hdcPaint, itemRect.left + 1, itemRect.top + 1,
 			icon->hIcon, m_bar->TRAY_ICON_SIZE, m_bar->TRAY_ICON_SIZE,
 			0, NULL, DI_NORMAL,
 			false == mouse_in, m_bar->saturation, m_bar->hue);
 	}
 }
 
-//-----------------------------
-#ifndef NO_TIPS
 void trayentry::settip()
 {
 	systemTray* icon = m_bar->GetTrayIconEx(m_index);
 	if (icon)
 	{
-		SetToolTip(m_bar->hwnd, &mr, icon->szTip);
-		make_bb_balloon(m_bar, icon, &mr);
+		SetToolTip(m_bar->hwnd, &itemRect, icon->szTip);
+		make_bb_balloon(m_bar, icon, &itemRect);
 	}
 }
-#endif
+
 
 //-----------------------------
 void trayentry::mouse_event(int mx, int my, int message, unsigned flags)
@@ -614,18 +617,18 @@ void trayentry::mouse_event(int mx, int my, int message, unsigned flags)
 	if ((WM_MOUSEMOVE == message && false == mouse_in)
 		|| WM_MOUSELEAVE == message
 		)
-		InvalidateRect(m_bar->hwnd, &mr, FALSE);
+		InvalidateRect(m_bar->hwnd, &itemRect, FALSE);
 
 	systemTrayIconPos pos;
 	pos.hwnd = m_bar->hwnd;
-	pos.r = mr;
+	pos.r = itemRect;
 	ForwardTrayMessage(m_bar->RealTrayIndex(m_index), message, &pos);
 }
 
 
-//===========================================================================
 
-//===========================================================================
+
+
 // common base class for clock, workspace-label, window-label
 
 barlabel::barlabel(int type, barinfo* bi, WCHAR const* text, int s)
@@ -640,24 +643,24 @@ void barlabel::draw()
 {
 	StyleItem* pSI = (StyleItem*)GetSettingPtr(m_Style);
 	pSI->TextColor = m_bar->alphaEnabled ? (pSI->TextColor < 0x101010 ? 0x444444 : pSI->TextColor) : pSI->TextColor;
-	m_bar->pBuff->MakeStyleGradient(m_bar->hdcPaint, &mr, pSI, pSI->bordered);
+	m_bar->pBuff->MakeStyleGradient(m_bar->hdcPaint, &itemRect, pSI, pSI->bordered);
 	SetBkMode(m_bar->hdcPaint, TRANSPARENT);
 	HGDIOBJ oldfont = SelectObject(m_bar->hdcPaint, m_bar->hFont);
 	RECT r;
 	int i = m_bar->labelIndent;
-	r.left = mr.left + i;
-	r.right = mr.right - i;
-	r.top = mr.top;
-	r.bottom = mr.bottom;
+	r.left = itemRect.left + i;
+	r.right = itemRect.right - i;
+	r.top = itemRect.top;
+	r.bottom = itemRect.bottom;
 	BBDrawTextAltW(m_bar->hdcPaint, m_text, -1, &r, TBJustify, pSI);
 	SelectObject(m_bar->hdcPaint, oldfont);
 
 }
 
 
-//===========================================================================
 
-//===========================================================================
+
+
 // workspace-label
 
 
@@ -682,9 +685,9 @@ void workspace_label::mouse_event(int mx, int my, int message, unsigned flags)
 }
 
 
-//===========================================================================
 
-//===========================================================================
+
+
 // window-label
 
 
@@ -694,9 +697,9 @@ window_label::window_label(barinfo* bi)
 }
 
 
-//===========================================================================
 
-//===========================================================================
+
+
 // clock-label
 
 clock_displ::clock_displ(barinfo* bi)
@@ -709,7 +712,7 @@ void clock_displ::settip()
 {
 	if (m_bar->clockTips)
 	{
-		SetToolTipW(m_bar->hwnd, &mr, m_bar->clockTimeTips);
+		SetToolTipW(m_bar->hwnd, &itemRect, m_bar->clockTimeTips);
 	}
 }
 //-----------------------------
@@ -722,43 +725,59 @@ void clock_displ::mouse_event(int mx, int my, int message, unsigned flags)
 	char* cmd;
 	switch (message)
 	{
-		case WM_LBUTTONDBLCLK: //n = 7; goto post_click;
+		case WM_LBUTTONDBLCLK:
 			SendMessage(BBhwnd, BB_EXECUTEASYNC, 0, (LPARAM)"control.exe timedate.cpl");
 			break;
 		case WM_LBUTTONUP:
+			if (flags & MK_SHIFT)
+			{
+				SendMessage(BBhwnd, BB_EXECUTEASYNC, 0, (LPARAM)"SndVol.exe");
+				break;
+			}
+			if (flags & MK_ALT)
+			{
+				SendMessage(BBhwnd, BB_EXECUTEASYNC, 0, (LPARAM)"explorer.exe ms-availablenetworks:");
+				break;
+			}
+
 			if (m_bar->clkBtn1Click[0] == '\0')
 			{
 				n = 1;
-				goto post_click;
+				flags &= (MK_CONTROL | MK_SHIFT | MK_ALT);
+				PostMessage(BBhwnd, BB_DESKCLICK, flags, n);
 			}
 			else
 			{
 				cmd = m_bar->clkBtn1Click;
-				goto custom_click;
+				SendMessage(BBhwnd, BB_EXECUTEASYNC, 0, (LPARAM)cmd);
 			}
+			break;
 		case WM_RBUTTONUP:
 			if (m_bar->clkBtn2Click[0] == '\0')
 			{
 				n = 2;
-				goto post_click;
+				flags &= (MK_CONTROL | MK_SHIFT | MK_ALT);
+				PostMessage(BBhwnd, BB_DESKCLICK, flags, n);
 			}
 			else
 			{
 				cmd = m_bar->clkBtn2Click;
-				goto custom_click;
+				SendMessage(BBhwnd, BB_EXECUTEASYNC, 0, (LPARAM)cmd);
 			}
+			break;
 		case WM_MBUTTONUP:
 			if (m_bar->clkBtn3Click[0] == '\0')
 			{
 				n = 3;
-				goto post_click;
+				flags &= (MK_CONTROL | MK_SHIFT | MK_ALT);
+				PostMessage(BBhwnd, BB_DESKCLICK, flags, n);
 			}
 			else
 			{
 				cmd = m_bar->clkBtn3Click;
-				goto custom_click;
+				SendMessage(BBhwnd, BB_EXECUTEASYNC, 0, (LPARAM)cmd);
 			}
-
+			break;
 		case WM_XBUTTONUP:
 			switch (HIWORD(flags))
 			{
@@ -766,63 +785,61 @@ void clock_displ::mouse_event(int mx, int my, int message, unsigned flags)
 					if (m_bar->clkBtn4Click[0] == '\0')
 					{
 						n = 4;
-						goto post_click;
+						flags &= (MK_CONTROL | MK_SHIFT | MK_ALT);
+						PostMessage(BBhwnd, BB_DESKCLICK, flags, n);
 					}
 					else
 					{
 						cmd = m_bar->clkBtn4Click;
-						goto custom_click;
+						SendMessage(BBhwnd, BB_EXECUTEASYNC, 0, (LPARAM)cmd);
 					}
+					break;
 				case XBUTTON2:
 					if (m_bar->clkBtn5Click[0] == '\0')
 					{
 						n = 5;
-						goto post_click;
+						flags &= (MK_CONTROL | MK_SHIFT | MK_ALT);
+						PostMessage(BBhwnd, BB_DESKCLICK, flags, n);
 					}
 					else
 					{
 						cmd = m_bar->clkBtn5Click;
-						goto custom_click;
+						SendMessage(BBhwnd, BB_EXECUTEASYNC, 0, (LPARAM)cmd);
 					}
+					break;
 				case XBUTTON3:
 					if (m_bar->clkBtn6Click[0] == '\0')
 					{
 						n = 6;
-						goto post_click;
+						flags &= (MK_CONTROL | MK_SHIFT | MK_ALT);
+						PostMessage(BBhwnd, BB_DESKCLICK, flags, n);
 					}
 					else
 					{
 						cmd = m_bar->clkBtn6Click;
-						goto custom_click;
+						SendMessage(BBhwnd, BB_EXECUTEASYNC, 0, (LPARAM)cmd);
 					}
-			} break;
-
-			custom_click:
-			SendMessage(BBhwnd, BB_EXECUTEASYNC, 0, (LPARAM)cmd);
-			break;
-
-			post_click:
-			flags &= (MK_CONTROL | MK_SHIFT | MK_ALT);
-			PostMessage(BBhwnd, BB_DESKCLICK, flags, n);
+					break;
+			}
 			break;
 	}
 }
 
 
-//===========================================================================
 
-//===========================================================================
+
+
 // fill in a space or new line
 
 spacer::spacer(int typ, barinfo* bi) : baritem(typ, bi)
 {
-	ZeroMemory(&mr, sizeof(RECT));
+	ZeroMemory(&itemRect, sizeof(RECT));
 }
 
 
-//===========================================================================
 
-//===========================================================================
+
+
 // buttons
 
 	//-----------------------------
@@ -839,13 +856,13 @@ void bar_button::draw()
 		? SN_TOOLBARBUTTONP : SN_TOOLBARBUTTON
 	);
 
-	m_bar->pBuff->MakeStyleGradient(m_bar->hdcPaint, &mr, pSI, pSI->bordered);
+	m_bar->pBuff->MakeStyleGradient(m_bar->hdcPaint, &itemRect, pSI, pSI->bordered);
 
 	HPEN Pen = CreatePen(PS_SOLID, 1, pSI->picColor);
 	HGDIOBJ other = SelectObject(m_bar->hdcPaint, Pen);
-	int w = (mr.right - mr.left) / 2;
-	int x = mr.left + w;
-	int y = mr.top + w;
+	int w = (itemRect.right - itemRect.left) / 2;
+	int x = itemRect.left + w;
+	int y = itemRect.top + w;
 
 	if (0 == dir)
 	{
@@ -899,7 +916,7 @@ void bar_button::draw()
 		}
 		else
 		{
-			bbDrawPix(m_bar->hdcPaint, &mr, pSI->picColor, dir > 0 ? BS_TRIANGLE : -BS_TRIANGLE);
+			bbDrawPix(m_bar->hdcPaint, &itemRect, pSI->picColor, dir > 0 ? BS_TRIANGLE : -BS_TRIANGLE);
 		}
 	}
 	DeleteObject(SelectObject(m_bar->hdcPaint, other));
@@ -982,21 +999,21 @@ void bar_button::mouse_event(int mx, int my, int message, unsigned flags)
 	}
 }
 
-#if 0//ndef NO_TIPS
+
 void bar_button::settip()
 {
 	if (m_type == M_CUOB)
-		SetToolTip(m_bar->hwnd, &mr,
+		SetToolTip(m_bar->hwnd, &itemRect,
 			"left-click: toggle current-only taskmode"
 			"\nright-click: toggle hidden trayicons"
 		);
 }
-#endif
 
 
-//===========================================================================
 
-//===========================================================================
+
+
+
 // task zone
 
 taskitemlist::taskitemlist(barinfo* bi) : baritemlist(M_TASKLIST, bi) { len = 0; }
@@ -1024,9 +1041,9 @@ bool taskitemlist::calc_sizes(void)
 		return f;
 
 	int b = styleBevelWidth;
-	int w = mr.right - mr.left + b;
-	int h = mr.bottom - mr.top;
-	int xpos = mr.left;
+	int w = itemRect.right - itemRect.left + b;
+	int h = itemRect.bottom - itemRect.top;
+	int xpos = itemRect.left;
 	//int is = m_bar->TASK_ICON_SIZE + b + 2;
 	int is = h + b;
 	bool icon_mode = 1 == m_bar->TaskStyle;
@@ -1053,10 +1070,10 @@ bool taskitemlist::calc_sizes(void)
 				right = left + min_width;
 		}
 
-		if (right > mr.right)
+		if (right > itemRect.right)
 			break;
 
-		f |= p->item->set_location(&left, mr.top, right - left, h, m_margin);
+		f |= p->item->set_location(&left, itemRect.top, right - left, h, m_margin);
 		++n;
 	}
 	return f;
@@ -1102,15 +1119,15 @@ void taskitemlist::invalidate(int flag)
 	{
 		if (TaskStyle == 1)
 		{
-			m_bar->pBuff->MakeStyleGradient(hdcPaint,  &mr, TaskStyle_L, false);
+			m_bar->pBuff->MakeStyleGradient(hdcPaint,  &itemRect, TaskStyle_L, false);
 		}
 		baritemlist::draw();
 	}
 */
 
-//===========================================================================
 
-//===========================================================================
+
+
 // tray zone
 
 trayitemlist::trayitemlist(barinfo* bi) : baritemlist(M_TRAYLIST, bi)
@@ -1127,8 +1144,8 @@ bool trayitemlist::calc_sizes(void)
 	struct itemlist* p;
 	bool f;
 
-	h = mr.bottom - mr.top;
-	w = mr.right - mr.left;
+	h = itemRect.bottom - itemRect.top;
+	w = itemRect.right - itemRect.left;
 
 	f = false;
 	ts = m_bar->GetTraySizeEx();
@@ -1146,16 +1163,16 @@ bool trayitemlist::calc_sizes(void)
 		return f;
 
 	s = (h - m_bar->TRAY_ICON_SIZE) / 2;
-	xpos = mr.left;
+	xpos = itemRect.left;
 
 	n = 0;
 	dolist(p, items)
 	{
 		int right = xpos + m_bar->TRAY_ICON_SIZE + 2;
-		if (right > mr.right)
+		if (right > itemRect.right)
 			break;
 
-		f |= p->item->set_location(&xpos, mr.top + s - 1, right - xpos, s + m_bar->TRAY_ICON_SIZE + 1, m_margin);
+		f |= p->item->set_location(&xpos, itemRect.top + s - 1, right - xpos, s + m_bar->TRAY_ICON_SIZE + 1, m_margin);
 		++n;
 	};
 
@@ -1193,15 +1210,15 @@ void trayitemlist::mouse_event(int mx, int my, int message, unsigned flags)
 /*
 	void trayitemlist::draw()
 	{
-		m_bar->pBuff->MakeStyleGradient(hdcPaint,  &mr, TaskStyle_L, false);
+		m_bar->pBuff->MakeStyleGradient(hdcPaint,  &itemRect, TaskStyle_L, false);
 		baritemlist::draw();
 	}
 */
 
 
-//===========================================================================
 
-//===========================================================================
+
+
 // LeanBar - the main class
 
 	//-----------------------------
@@ -1210,13 +1227,12 @@ LeanBar::LeanBar(barinfo* bi) : baritemlist(M_BARLIST, bi)
 
 }
 
-#ifndef NO_TIPS
 void LeanBar::settip()
 {
 	baritemlist::settip();
-	ClearToolTips(m_bar->hwnd);
+	//ClearToolTips(m_bar->hwnd);
 }
-#endif
+
 
 //-----------------------------
 void LeanBar::invalidate(int flag)
@@ -1275,6 +1291,8 @@ void LeanBar::create_bar()
 			case M_WSPB_L:
 			case M_WSPB_R:
 			case M_WINB_L:
+				add(new bar_button(*item_ptr, m_bar));
+				break;
 			case M_WINB_R:
 				add(new bar_button(*item_ptr, m_bar));
 				break;
@@ -1423,24 +1441,14 @@ bool LeanBar::calc_line_size(itemlist** p0, int top, int bottom, int height)
 		xpos += max_clock_width;
 
 	// --- assign variable widths ----------------------------------
-	int rest_width = imax(0, mr.right - xpos);
+	int rest_width = imax(0, itemRect.right - xpos);
 
 	if (taskzone_width && winlabel_width)
 	{
-		if (1 == m_bar->TaskStyle) // icons only
-		{
-			taskzone_width = imin(rest_width,
-				(m_bar->TASK_ICON_SIZE + b + 2) * m_bar->GetTaskListSizeEx() - b
-			);
-			winlabel_width = rest_width - taskzone_width;
-		}
-		else
-		{
-			winlabel_width = rest_width / 2;
-			if (winlabel_width > 200) winlabel_width = 200;
-			if (winlabel_width < 32)  winlabel_width = 0;
-			taskzone_width = rest_width - winlabel_width;
-		}
+
+		// i just did the opposite of what the original dev did because i dont like when the winlabel bar is like half of the bar... i prefer to have a bigger taskzone. like the original windows taskbar
+		winlabel_width = 150;
+		taskzone_width = rest_width - winlabel_width;
 	}
 	else if (winlabel_width)
 	{
@@ -1501,21 +1509,20 @@ bool LeanBar::calc_line_size(itemlist** p0, int top, int bottom, int height)
 
 			case M_WSPL:
 				ws = max_label_width;
-				goto label_ypos;
-			case M_CLCK:
-				ws = max_clock_width;
-				goto label_ypos;
-			case M_WINL:
-				ws = winlabel_width;
-				goto label_ypos;
-			case M_TASKLIST:
-				ws = taskzone_width;
-				goto label_ypos;
-
-				label_ypos:
 				ypos = top + (height - (hs = m_bar->labelH)) / 2;
 				break;
-
+			case M_CLCK:
+				ws = max_clock_width;
+				ypos = top + (height - (hs = m_bar->labelH)) / 2;
+				break;
+			case M_WINL:
+				ws = winlabel_width;
+				ypos = top + (height - (hs = m_bar->labelH)) / 2;
+				break;
+			case M_TASKLIST:
+				ws = taskzone_width;
+				ypos = top + (height - (hs = m_bar->labelH)) / 2;
+				break;
 		}
 
 		f |= gi->set_location(&xpos, ypos, ws, hs, ypos - top);

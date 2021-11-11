@@ -211,6 +211,7 @@ char *m_format(const char *fmt, ...)
     va_list arg_list;
     va_start(arg_list, fmt);
     return m_formatv(fmt, arg_list);
+	// NERVERUSED va_end
 }
 
 /* ------------------------------------------------------------------------- */
